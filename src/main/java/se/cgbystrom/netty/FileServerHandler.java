@@ -33,13 +33,13 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler {
     private String rootPath;
 
     public FileServerHandler(String path) {
-        if (path.startsWith("classpath://"))
-            this.rootPath = getClass().getResource(path.replace("classpath://", "")).getPath();
+        if (path.startsWith("classpath://")) {
+            rootPath = getClass().getResource(path.replace("classpath://", "")).getPath();
             if (rootPath.lastIndexOf("/") == rootPath.length() -1)
                 rootPath = rootPath.substring(0, rootPath.length() -1);
-
-        else
-            this.rootPath = path;
+        } else {
+            rootPath = path;
+        }
     }
 
     @Override
