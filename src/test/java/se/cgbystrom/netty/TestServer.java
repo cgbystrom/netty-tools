@@ -30,7 +30,7 @@ public class TestServer {
         pipeline.addLast("decoder", new HttpRequestDecoder());
         pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
         pipeline.addLast("encoder", new HttpResponseEncoder());
-        pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
+        //pipeline.addLast("chunkedWriter", );
 
         for (ChannelHandler handler : handlers) {
             pipeline.addLast("handler_" + handler.toString(), handler);

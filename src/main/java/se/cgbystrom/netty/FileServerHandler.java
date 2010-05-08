@@ -6,6 +6,7 @@ import static org.jboss.netty.handler.codec.http.HttpMethod.*;
 import static org.jboss.netty.handler.codec.http.HttpResponseStatus.*;
 import static org.jboss.netty.handler.codec.http.HttpVersion.*;
 
+import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.*;
 import org.jboss.netty.handler.codec.frame.TooLongFrameException;
@@ -31,6 +32,7 @@ import java.net.URLDecoder;
  */
 public class FileServerHandler extends SimpleChannelUpstreamHandler {
     private String rootPath;
+    private int cacheMaxAge = -1;
 
     public FileServerHandler(String path) {
         if (path.startsWith("classpath://")) {
@@ -40,6 +42,11 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler {
         } else {
             rootPath = path;
         }
+    }
+
+    public FileServerHandler(String path, int cacheMaxAge) {
+        this(path);
+        this.cacheMaxAge = cacheMaxAge;
     }
 
     @Override
@@ -75,20 +82,30 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler {
         }
         long fileLength = raf.length();
 
-        HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
+        CachableHttpResponse response = new CachableHttpResponse(HTTP_1_1, OK);
+        response.setRequestUri(request.getUri());
+        response.setCacheMaxAge(cacheMaxAge);
         setContentLength(response, fileLength);
 
         Channel ch = e.getChannel();
 
         // Write the initial line and the header.
-        ch.write(response);
+
 
         // Write the content.
         ChannelFuture writeFuture;
         if (ch.getPipeline().get(SslHandler.class) != null) {
             // Cannot use zero-copy with HTTPS.
+            ch.write(response);
             writeFuture = ch.write(new ChunkedFile(raf, 0, fileLength, 8192));
+        } else if (cacheMaxAge > 0) {
+            // For caching to work, we will read the entire file to memory
+            byte[] b = new byte[(int)fileLength];
+            raf.read(b);
+            response.setContent(ChannelBuffers.copiedBuffer(b));
+            writeFuture = ch.write(response);
         } else {
+            ch.write(response);
             // No encryption - use zero-copy.
             final FileRegion region =
                 new DefaultFileRegion(raf.getChannel(), 0, fileLength);
