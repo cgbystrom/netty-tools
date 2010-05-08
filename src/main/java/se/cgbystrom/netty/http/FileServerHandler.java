@@ -88,9 +88,6 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler {
 
         Channel ch = e.getChannel();
 
-        // Write the initial line and the header.
-
-
         // Write the content.
         ChannelFuture writeFuture;
         if (ch.getPipeline().get(SslHandler.class) != null) {

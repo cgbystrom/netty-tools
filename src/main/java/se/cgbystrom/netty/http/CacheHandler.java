@@ -3,6 +3,7 @@ package se.cgbystrom.netty.http;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.*;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMessage;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
@@ -29,9 +30,9 @@ public class CacheHandler extends SimpleChannelHandler {
             if (ce != null && ce.expires > System.currentTimeMillis()) {
                 ChannelFuture f = e.getChannel().write(ce.content);
                 f.addListener(ChannelFutureListener.CLOSE);
-                //if (!isKeepAlive(request)) {
-                //    f.addListener(ChannelFutureListener.CLOSE);
-                //}
+                if (!HttpHeaders.isKeepAlive(request)) {
+                    f.addListener(ChannelFutureListener.CLOSE);
+                }
                 return;
             }
         }

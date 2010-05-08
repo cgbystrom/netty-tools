@@ -11,6 +11,7 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
 import java.nio.charset.Charset;
 
+import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 public class SimpleResponseHandler extends SimpleChannelUpstreamHandler {
@@ -34,6 +35,7 @@ public class SimpleResponseHandler extends SimpleChannelUpstreamHandler {
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
         HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
+        response.setHeader(CONTENT_TYPE, "text/plain; charset=UTF-8");
         response.setContent(ChannelBuffers.copiedBuffer(text, Charset.forName("UTF-8")));
         e.getChannel().write(response).addListener(ChannelFutureListener.CLOSE);
     }
