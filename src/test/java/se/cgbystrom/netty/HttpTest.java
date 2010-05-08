@@ -3,77 +3,97 @@ package se.cgbystrom.netty;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.ChannelException;
 import org.jboss.netty.channel.ChannelHandler;
 import org.jboss.netty.channel.ChannelPipeline;
+import org.jboss.netty.channel.ChannelPipelineFactory;
+import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 import org.jboss.netty.handler.stream.ChunkedWriteHandler;
-import org.junit.Before;
 import org.junit.Test;
 import se.cgbystrom.netty.http.CacheHandler;
 import se.cgbystrom.netty.http.FileServerHandler;
+import se.cgbystrom.netty.http.SimpleResponseHandler;
+import se.cgbystrom.netty.http.router.RouterHandler;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 
 public class HttpTest {
-
-    @Before
-    public void setUp() {
-
-    }
+    private int port;
 
     @Test
     public void serveFromFileSystem() throws IOException, InterruptedException {
         final String content = "Testing the file system";
         File f = createTemporaryFile(content);
-        int port = startServer(new ChunkedWriteHandler(), new FileServerHandler(f.getParent()));
+        startServer(new ChunkedWriteHandler(), new FileServerHandler(f.getParent()));
         Thread.sleep(1000);
 
-        assertEquals(content, get("http://localhost:" + port + "/" + f.getName()));
+        assertEquals(content, get("/" + f.getName()));
     }
 
     @Test
     public void serveFromClassPath() throws IOException, InterruptedException {
-        int port = startServer(new ChunkedWriteHandler(), new FileServerHandler("classpath:///"));
+        startServer(new ChunkedWriteHandler(), new FileServerHandler("classpath:///"));
         Thread.sleep(1000);
 
-        assertEquals("Testing the class path", get("http://localhost:" + port + "/test.txt"));
+        assertEquals("Testing the class path", get("/test.txt"));
     }
-
 
     @Test
     public void cacheMaxAge() throws IOException, InterruptedException {
         final String content = "Testing the file system";
         File f = createTemporaryFile(content);
-        int port = startServer(new CacheHandler(), new ChunkedWriteHandler(), new FileServerHandler(f.getParent(), 100));
+        startServer(new CacheHandler(), new ChunkedWriteHandler(), new FileServerHandler(f.getParent(), 100));
         Thread.sleep(1000);
 
-        assertEquals(content, get("http://localhost:" + port + "/" + f.getName()));
+        assertEquals(content, get("/" + f.getName()));
         assertTrue(f.delete());
-        assertEquals(content, get("http://localhost:" + port + "/" + f.getName()));
+        assertEquals(content, get("/" + f.getName()));
     }
 
     @Test
     public void cacheMaxAgeExpire() throws IOException, InterruptedException {
         final String content = "Testing the file system";
         File f = createTemporaryFile(content);
-        int port = startServer(new CacheHandler(), new ChunkedWriteHandler(), new FileServerHandler(f.getParent(), 1));
+        startServer(new CacheHandler(), new ChunkedWriteHandler(), new FileServerHandler(f.getParent(), 1));
         Thread.sleep(1000);
 
-        assertEquals(content, get("http://localhost:" + port + "/" + f.getName()));
+        assertEquals(content, get("/" + f.getName()));
         Thread.sleep(2000);
         assertTrue(f.delete());
-        get("http://localhost:18080/" + f.getName(), 404);
+        get("/" + f.getName(), 404);
+    }
+
+    @Test
+    public void router() throws Exception {
+        final String startsWith = "startsWith:/hello-world";
+        final String endsWith = "endsWith:/the-very-end";
+        final String equals = "equals:/perfect-match";
+        Map<String, ChannelHandler> routes = new HashMap<String, ChannelHandler>();
+        routes.put(startsWith, new SimpleResponseHandler(startsWith));
+        routes.put(endsWith, new SimpleResponseHandler(endsWith));
+        routes.put(equals, new SimpleResponseHandler(equals));
+
+        startServer(new ChunkedWriteHandler(), new RouterHandler(routes));
+
+        assertEquals(startsWith, get("/hello-world/not-used"));
+        assertEquals(endsWith, get("/blah-blah/blah/the-very-end"));
+        assertEquals(equals, get("/perfect-match"));
+        assertFalse(equals.equals(get("/perfect-match/test", 404)));
+        assertEquals("Not found", get("/not-found", 404));
     }
 
     private File createTemporaryFile(String content) throws IOException {
@@ -85,13 +105,13 @@ public class HttpTest {
         return f;
     }
 
-    private String get(String url) throws IOException {
-        return get(url, 200);
+    private String get(String uri) throws IOException {
+        return get(uri, 200);
     }
 
-    private String get(String url, int expectedStatusCode) throws IOException {
+    private String get(String uri, int expectedStatusCode) throws IOException {
         HttpClient client = new HttpClient();
-        GetMethod method = new GetMethod(url);
+        GetMethod method = new GetMethod("http://localhost:" + port + uri);
 
         assertEquals(expectedStatusCode, client.executeMethod(method));
         return new String(method.getResponseBody());
@@ -103,16 +123,10 @@ public class HttpTest {
                         Executors.newCachedThreadPool(),
                         Executors.newCachedThreadPool()));
 
-        ChannelPipeline pipeline = bootstrap.getPipeline();
-        pipeline.addLast("decoder", new HttpRequestDecoder());
-        pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
-        pipeline.addLast("encoder", new HttpResponseEncoder());
+        bootstrap.setPipelineFactory(new PipelineFactory(handlers));
 
-        for (ChannelHandler handler : handlers) {
-            pipeline.addLast("handler_" + handler.toString(), handler);
-        }
-
-        return bindBootstrap(bootstrap, 0);
+        port = bindBootstrap(bootstrap, 0);
+        return port;
     }
 
     private int bindBootstrap(ServerBootstrap bootstrap, int retryCount) {
@@ -126,5 +140,27 @@ public class HttpTest {
         }
 
         return 18080 + retryCount;
+    }
+
+    public static class PipelineFactory implements ChannelPipelineFactory {
+        private ChannelHandler[] handlers;
+
+        public PipelineFactory(ChannelHandler... handlers) {
+            this.handlers = handlers;
+        }
+
+        public ChannelPipeline getPipeline() throws Exception {
+            ChannelPipeline pipeline = Channels.pipeline();
+
+            pipeline.addLast("decoder", new HttpRequestDecoder());
+            pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
+            pipeline.addLast("encoder", new HttpResponseEncoder());
+
+            for (ChannelHandler handler : handlers) {
+                pipeline.addLast("handler_" + handler.toString(), handler);
+            }
+
+            return pipeline;
+        }
     }
 }
