@@ -10,15 +10,14 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Random;
 
 public class FileServerTest {
 
     @Test
     public void fromFileSystem() throws IOException, InterruptedException {
-        final String randomData = generateRandomData();
-        File f = createTemporaryFile(randomData);
-        new FileServer(f.getParent());
+        final String content = "Testing the file system";
+        File f = createTemporaryFile(content);
+        new TestServer(new FileServerHandler(f.getParent()));
         Thread.sleep(1000);
 
         String url = "http://localhost:18080/" + f.getName();
@@ -26,12 +25,12 @@ public class FileServerTest {
         GetMethod method = new GetMethod(url);
 
         assertEquals(200, client.executeMethod(method));
-        assertEquals(randomData, new String(method.getResponseBody()));
+        assertEquals(content, new String(method.getResponseBody()));
     }
 
     @Test
     public void fromClassPath() throws IOException, InterruptedException {
-        new FileServer("classpath:///");
+        new TestServer(new FileServerHandler("classpath:///"));
         Thread.sleep(1000);
 
         HttpClient client = new HttpClient();
@@ -49,11 +48,5 @@ public class FileServerTest {
         out.write(content);
         out.close();
         return f;
-    }
-
-    private String generateRandomData() {
-        byte[] data = new byte[1024 * 100];
-        new Random().nextBytes(data);
-        return new String(data);
     }
 }
