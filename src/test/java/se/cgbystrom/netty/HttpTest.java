@@ -13,20 +13,25 @@ import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 import org.jboss.netty.handler.stream.ChunkedWriteHandler;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.BindException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 
-public class FileServerTest {
+public class HttpTest {
+
+    @Before
+    public void setUp() {
+
+    }
 
     @Test
-    public void fromFileSystem() throws IOException, InterruptedException {
+    public void serveFromFileSystem() throws IOException, InterruptedException {
         final String content = "Testing the file system";
         File f = createTemporaryFile(content);
         int port = startServer(new ChunkedWriteHandler(), new FileServerHandler(f.getParent()));
@@ -36,14 +41,40 @@ public class FileServerTest {
     }
 
     @Test
-    public void fromClassPath() throws IOException, InterruptedException {
+    public void serveFromClassPath() throws IOException, InterruptedException {
         int port = startServer(new ChunkedWriteHandler(), new FileServerHandler("classpath:///"));
         Thread.sleep(1000);
 
         assertEquals("Testing the class path", get("http://localhost:" + port + "/test.txt"));
     }
 
-    public static File createTemporaryFile(String content) throws IOException {
+
+    @Test
+    public void cacheMaxAge() throws IOException, InterruptedException {
+        final String content = "Testing the file system";
+        File f = createTemporaryFile(content);
+        int port = startServer(new CacheHandler(), new ChunkedWriteHandler(), new FileServerHandler(f.getParent(), 100));
+        Thread.sleep(1000);
+
+        assertEquals(content, get("http://localhost:" + port + "/" + f.getName()));
+        assertTrue(f.delete());
+        assertEquals(content, get("http://localhost:" + port + "/" + f.getName()));
+    }
+
+    @Test
+    public void cacheMaxAgeExpire() throws IOException, InterruptedException {
+        final String content = "Testing the file system";
+        File f = createTemporaryFile(content);
+        int port = startServer(new CacheHandler(), new ChunkedWriteHandler(), new FileServerHandler(f.getParent(), 1));
+        Thread.sleep(1000);
+
+        assertEquals(content, get("http://localhost:" + port + "/" + f.getName()));
+        Thread.sleep(2000);
+        assertTrue(f.delete());
+        get("http://localhost:18080/" + f.getName(), 404);
+    }
+
+    private File createTemporaryFile(String content) throws IOException {
         File f = File.createTempFile("FileServerTest", null);
         f.deleteOnExit();
         BufferedWriter out = new BufferedWriter(new FileWriter(f));
@@ -52,11 +83,11 @@ public class FileServerTest {
         return f;
     }
 
-    public static String get(String url) throws IOException {
+    private String get(String url) throws IOException {
         return get(url, 200);
     }
 
-    public static String get(String url, int expectedStatusCode) throws IOException {
+    private String get(String url, int expectedStatusCode) throws IOException {
         HttpClient client = new HttpClient();
         GetMethod method = new GetMethod(url);
 
@@ -64,7 +95,7 @@ public class FileServerTest {
         return new String(method.getResponseBody());
     }
 
-    public static int startServer(ChannelHandler... handlers) {
+    private int startServer(ChannelHandler... handlers) {
         ServerBootstrap bootstrap = new ServerBootstrap(
                 new NioServerSocketChannelFactory(
                         Executors.newCachedThreadPool(),
@@ -82,7 +113,7 @@ public class FileServerTest {
         return bindBootstrap(bootstrap, 0);
     }
 
-    private static int bindBootstrap(ServerBootstrap bootstrap, int retryCount) {
+    private int bindBootstrap(ServerBootstrap bootstrap, int retryCount) {
         try {
             bootstrap.bind(new InetSocketAddress(18080 + retryCount));
         } catch (ChannelException e) {
