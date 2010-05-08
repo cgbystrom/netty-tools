@@ -3,6 +3,7 @@ package se.cgbystrom.netty;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
@@ -20,12 +21,7 @@ public class FileServerTest {
         new TestServer(new FileServerHandler(f.getParent()));
         Thread.sleep(1000);
 
-        String url = "http://localhost:18080/" + f.getName();
-        HttpClient client = new HttpClient();
-        GetMethod method = new GetMethod(url);
-
-        assertEquals(200, client.executeMethod(method));
-        assertEquals(content, new String(method.getResponseBody()));
+        assertEquals(content, get("http://localhost:18080/" + f.getName()));
     }
 
     @Test
@@ -33,20 +29,23 @@ public class FileServerTest {
         new TestServer(new FileServerHandler("classpath:///"));
         Thread.sleep(1000);
 
-        HttpClient client = new HttpClient();
-        GetMethod method = new GetMethod("http://localhost:18080/test.txt");
-
-        assertEquals(200, client.executeMethod(method));
-        assertEquals("Testing the class path", new String(method.getResponseBody()));
+        assertEquals("Testing the class path", get("http://localhost:18080/test.txt"));
     }
 
-
-    private File createTemporaryFile(String content) throws IOException {
+    public static File createTemporaryFile(String content) throws IOException {
         File f = File.createTempFile("FileServerTest", null);
         f.deleteOnExit();
         BufferedWriter out = new BufferedWriter(new FileWriter(f));
         out.write(content);
         out.close();
         return f;
+    }
+
+    public static String get(String url) throws IOException {
+        HttpClient client = new HttpClient();
+        GetMethod method = new GetMethod(url);
+
+        assertEquals(200, client.executeMethod(method));
+        return new String(method.getResponseBody());
     }
 }
