@@ -15,6 +15,8 @@ import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 import org.jboss.netty.handler.stream.ChunkedWriteHandler;
 import org.junit.Before;
 import org.junit.Test;
+import se.cgbystrom.netty.http.CacheHandler;
+import se.cgbystrom.netty.http.FileServerHandler;
 
 import java.io.BufferedWriter;
 import java.io.File;

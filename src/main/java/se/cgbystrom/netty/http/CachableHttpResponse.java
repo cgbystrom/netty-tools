@@ -1,4 +1,4 @@
-package se.cgbystrom.netty;
+package se.cgbystrom.netty.http;
 
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
