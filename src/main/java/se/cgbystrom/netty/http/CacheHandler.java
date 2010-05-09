@@ -21,6 +21,7 @@ public class CacheHandler extends SimpleChannelHandler {
     private static Pattern maxAgePattern = Pattern.compile("max-age=\\d+");
     private ConcurrentHashMap<String, CacheEntry> cache = new ConcurrentHashMap<String, CacheEntry>();
 
+    @Override
     public void handleUpstream(ChannelHandlerContext ctx, ChannelEvent e) throws Exception {
 
         if (e instanceof MessageEvent && ((MessageEvent)e).getMessage() instanceof HttpRequest) {
