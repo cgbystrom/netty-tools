@@ -17,6 +17,7 @@ import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 import org.jboss.netty.handler.stream.ChunkedWriteHandler;
 import org.junit.Test;
+import se.cgbystrom.netty.http.BandwidthMeterHandler;
 import se.cgbystrom.netty.http.CacheHandler;
 import se.cgbystrom.netty.http.FileServerHandler;
 import se.cgbystrom.netty.http.SimpleResponseHandler;
@@ -96,6 +97,25 @@ public class HttpTest {
         assertEquals("Not found", get("/not-found", 404));
     }
 
+    @Test
+    public void bandwidthMeter() throws Exception {
+        final String data = "Bandwidth metering!";
+        final BandwidthMeterHandler meter = new BandwidthMeterHandler();
+
+        PipelineFactory pf = new PipelineFactory(new ChunkedWriteHandler(), new SimpleResponseHandler(data));
+        pf.setFirst(meter);
+        startServer(pf);
+
+        assertEquals(data, get("/bandwidth"));
+        assertEquals(79, meter.getBytesSent());
+        assertEquals(94, meter.getBytesReceived());
+
+        meter.reset();
+        assertEquals(0, meter.getBytesSent());
+        assertEquals(0, meter.getBytesReceived());
+    }
+
+
     private File createTemporaryFile(String content) throws IOException {
         File f = File.createTempFile("FileServerTest", null);
         f.deleteOnExit();
@@ -118,12 +138,16 @@ public class HttpTest {
     }
 
     private int startServer(ChannelHandler... handlers) {
+        return startServer(new PipelineFactory(handlers));
+    }
+
+    private int startServer(ChannelPipelineFactory factory) {
         ServerBootstrap bootstrap = new ServerBootstrap(
                 new NioServerSocketChannelFactory(
                         Executors.newCachedThreadPool(),
                         Executors.newCachedThreadPool()));
 
-        bootstrap.setPipelineFactory(new PipelineFactory(handlers));
+        bootstrap.setPipelineFactory(factory);
 
         port = bindBootstrap(bootstrap, 0);
         return port;
@@ -144,14 +168,22 @@ public class HttpTest {
 
     public static class PipelineFactory implements ChannelPipelineFactory {
         private ChannelHandler[] handlers;
+        private ChannelHandler first = null;
 
         public PipelineFactory(ChannelHandler... handlers) {
             this.handlers = handlers;
         }
 
+        public void setFirst(ChannelHandler first) {
+            this.first = first;
+        }
+
         public ChannelPipeline getPipeline() throws Exception {
             ChannelPipeline pipeline = Channels.pipeline();
 
+            if (first != null) {
+                pipeline.addLast("first", first);
+            }
             pipeline.addLast("decoder", new HttpRequestDecoder());
             pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
             pipeline.addLast("encoder", new HttpResponseEncoder());
