@@ -15,6 +15,8 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
+import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocket.WebSocketFrame;
 import org.jboss.netty.handler.stream.ChunkedWriteHandler;
 import org.junit.Test;
 import se.cgbystrom.netty.http.BandwidthMeterHandler;
@@ -22,12 +24,16 @@ import se.cgbystrom.netty.http.CacheHandler;
 import se.cgbystrom.netty.http.FileServerHandler;
 import se.cgbystrom.netty.http.SimpleResponseHandler;
 import se.cgbystrom.netty.http.router.RouterHandler;
+import se.cgbystrom.netty.http.websocket.WebSocketCallback;
+import se.cgbystrom.netty.http.websocket.WebSocketClient;
+import se.cgbystrom.netty.http.websocket.WebSocketClientFactory;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -115,6 +121,26 @@ public class HttpTest {
         assertEquals(0, meter.getBytesReceived());
     }
 
+    @Test
+    public void webSocketClient() throws Exception {
+        startServer(new WebSocketServerHandler());
+
+        WebSocketClientFactory clientFactory = new WebSocketClientFactory();
+        final TestClient callback = new TestClient();
+
+        WebSocketClient client = clientFactory.newClient(new URI("ws://localhost:" + port + "/websocket"), callback);
+
+        client.connect().awaitUninterruptibly();
+        Thread.sleep(1000);
+
+        assertTrue(callback.connected);
+        assertEquals(TestClient.TEST_MESSAGE.toUpperCase(), callback.messageReceived);
+        client.disconnect();
+        Thread.sleep(1000);
+
+        assertFalse(callback.connected);
+    }
+
 
     private File createTemporaryFile(String content) throws IOException {
         File f = File.createTempFile("FileServerTest", null);
@@ -193,6 +219,32 @@ public class HttpTest {
             }
 
             return pipeline;
+        }
+    }
+
+    private static class TestClient implements WebSocketCallback {
+        public static final String TEST_MESSAGE = "Testing this WebSocket";
+        public boolean connected = false;
+        public String messageReceived = null;
+
+        public void onConnect(WebSocketClient client) {
+            System.out.println("WebSocket connected!");
+            connected = true;
+            client.send(new DefaultWebSocketFrame(TEST_MESSAGE));
+        }
+
+        public void onDisconnect(WebSocketClient client) {
+            System.out.println("WebSocket disconnected!");
+            connected = false;
+        }
+
+        public void onMessage(WebSocketClient client, WebSocketFrame frame) {
+            System.out.println("Message:" + frame.getTextData());
+            messageReceived = frame.getTextData();
+        }
+
+        public void onError(Throwable t) {
+            t.printStackTrace();
         }
     }
 }
