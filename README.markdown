@@ -14,9 +14,11 @@ Simple router that can route incoming HTTP requests to different ChannelHandlers
 Supports very basic matching rules.
 * **Bandwidth meter**<br>
 A monitor to measure the use of bandwidth in your Netty application. Place it first in your pipeline and it will measure the size of sent/received ChannelBuffers.
+* **Async WebSocket client**<br>
+A WebSocket client in pure Java with Netty. Useful for integration testing. Being event-driven, it's also perfect for doing heavy load testing of WebSocket servers.
 
 Netty is not a web server and these tools are quite "raw" in the HTTP sense. If you intend to do anything moderately complex, please look [elsewhere](http://jetty.codehaus.org/jetty/).
-Usually, what you want is to add a small web interface to your Netty application for administration purposes. That's where these tools may come in handy.
+I've used it for creating small HTTP-based admin interfaces for my Netty servers. That's one use case where these tools may come in handy.
 
 Getting started
 ----------
