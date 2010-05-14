@@ -19,7 +19,7 @@ public class RouterHandler extends SimpleChannelUpstreamHandler {
     private static final String EQUALS = "equals:";
     private static final ChannelHandler HANDLER_404 = new SimpleResponseHandler("Not found", 404);
 
-    public RouterHandler(Map<String, ChannelHandler> routes) throws Exception {
+    public RouterHandler(LinkedHashMap<String, ChannelHandler> routes) throws Exception {
         for (Map.Entry<String, ChannelHandler> m : routes.entrySet()) {
             if (m.getKey().startsWith(STARTS_WITH)) {
                 this.routes.put(new StartsWithMatcher(m.getKey().replace(STARTS_WITH, "")), m.getValue());

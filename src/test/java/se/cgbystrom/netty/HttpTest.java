@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
@@ -89,7 +90,7 @@ public class HttpTest {
         final String startsWith = "startsWith:/hello-world";
         final String endsWith = "endsWith:/the-very-end";
         final String equals = "equals:/perfect-match";
-        Map<String, ChannelHandler> routes = new HashMap<String, ChannelHandler>();
+        LinkedHashMap<String, ChannelHandler> routes = new LinkedHashMap<String, ChannelHandler>();
         routes.put(startsWith, new SimpleResponseHandler(startsWith));
         routes.put(endsWith, new SimpleResponseHandler(endsWith));
         routes.put(equals, new SimpleResponseHandler(equals));
