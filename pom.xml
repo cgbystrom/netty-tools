@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>se.cgbystrom.netty</groupId>
     <artifactId>netty-tools</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.3-SNAPSHOT</version>
     <description>
         A small collection of tools useful when working with JBoss Netty.
     </description>
