@@ -10,9 +10,11 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.*;
 import org.jboss.netty.handler.codec.frame.TooLongFrameException;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.handler.stream.ChunkedFile;
 import org.jboss.netty.util.CharsetUtil;
@@ -21,6 +23,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
+import java.net.URLConnection;
 import java.net.URLDecoder;
 
 /**
@@ -31,6 +34,7 @@ import java.net.URLDecoder;
  */
 public class FileServerHandler extends SimpleChannelUpstreamHandler {
     private String rootPath;
+    private String stripFromUri;
     private int cacheMaxAge = -1;
 
     public FileServerHandler(String path) {
@@ -43,9 +47,19 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler {
         }
     }
 
+    public FileServerHandler(String path, String stripFromUri) {
+        this(path);
+        this.stripFromUri = stripFromUri;
+    }
+
     public FileServerHandler(String path, int cacheMaxAge) {
         this(path);
         this.cacheMaxAge = cacheMaxAge;
+    }
+
+    public FileServerHandler(String path, int cacheMaxAge, String stripFromUri) {
+        this(path, cacheMaxAge);
+        this.stripFromUri = stripFromUri;
     }
 
     @Override
@@ -56,7 +70,12 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler {
             return;
         }
 
-        final String path = sanitizeUri(request.getUri());
+        String uri = request.getUri();
+        if (stripFromUri != null) {
+            uri = uri.replaceFirst(stripFromUri, "");
+        }
+
+        final String path = sanitizeUri(uri);
         if (path == null) {
             sendError(ctx, FORBIDDEN);
             return;
@@ -81,9 +100,14 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler {
         }
         long fileLength = raf.length();
 
+        String contentType = URLConnection.guessContentTypeFromName(path);
+
         CachableHttpResponse response = new CachableHttpResponse(HTTP_1_1, OK);
         response.setRequestUri(request.getUri());
         response.setCacheMaxAge(cacheMaxAge);
+        if (contentType != null ) {
+            response.setHeader(HttpHeaders.Names.CONTENT_TYPE, contentType);
+        }
         setContentLength(response, fileLength);
 
         Channel ch = e.getChannel();
@@ -162,6 +186,13 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler {
             uri.contains("." + File.separator) ||
             uri.startsWith(".") || uri.endsWith(".")) {
             return null;
+        }
+
+        QueryStringDecoder decoder = new QueryStringDecoder(uri);
+        uri = decoder.getPath();
+
+        if (uri.endsWith("/")) {
+            uri += "index.html";
         }
 
         // Convert to absolute path.
