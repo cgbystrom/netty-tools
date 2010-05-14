@@ -16,6 +16,8 @@ Supports very basic matching rules.
 A monitor to measure the use of bandwidth in your Netty application. Place it first in your pipeline and it will measure the size of sent/received ChannelBuffers.
 * **Async WebSocket client**<br>
 A WebSocket client in pure Java with Netty. Useful for integration testing. Being event-driven, it's also perfect for doing heavy load testing of WebSocket servers.
+* **Thrift support**<br>
+An RPC processor for Thrift is included together with a ChannelBuffer transport.
 
 Netty is not a web server and these tools are quite "raw" in the HTTP sense. If you intend to do anything moderately complex, please look [elsewhere](http://jetty.codehaus.org/jetty/).
 I've used it for creating small HTTP-based admin interfaces for my Netty servers. That's one use case where these tools may come in handy.
@@ -36,11 +38,16 @@ Use the following dependency block to import:
     <dependency>
         <groupId>se.cgbystrom.netty</groupId>
         <artifactId>netty-tools</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.2</version>
     </dependency>
 
 ## Examples
 As of now, please see the tests for example usage.
+
+## Version history
+* 1.0.2 - Async WebSocket client, Thrift support + various bug fixes
+* 1.0.1 - Internal version
+* 1.0.0 - Initial version
 
 ## Authors
 
