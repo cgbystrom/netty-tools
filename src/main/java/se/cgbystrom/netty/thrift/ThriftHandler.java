@@ -6,10 +6,18 @@ import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
+import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.jboss.netty.handler.codec.http.HttpResponse;
+import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.jboss.netty.handler.codec.http.HttpVersion;
 
 /**
  * Handler for Thrift RPC processors
@@ -51,8 +59,10 @@ public class ThriftHandler extends SimpleChannelUpstreamHandler {
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
         ChannelBuffer input;
+        HttpRequest httpRequest = null;
         if (e.getMessage() instanceof HttpRequest) {
-            input = ((HttpRequest)e.getMessage()).getContent();
+            httpRequest = ((HttpRequest)e.getMessage());
+            input = httpRequest.getContent();
         } else {
             input = (ChannelBuffer)e.getMessage();
         }
@@ -60,7 +70,17 @@ public class ThriftHandler extends SimpleChannelUpstreamHandler {
         TProtocol protocol = protocolFactory.getProtocol(new TNettyChannelBuffer(input, output));
 
         processor.process(protocol, protocol);
-        e.getChannel().write(output);
+
+        if (httpRequest != null) {
+            HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+            response.setContent(output);
+            ChannelFuture future = e.getChannel().write(response);
+            if (!HttpHeaders.isKeepAlive(httpRequest)) {
+                future.addListener(ChannelFutureListener.CLOSE);
+            }
+        } else {
+            e.getChannel().write(output);
+        }
     }
 
     /**
