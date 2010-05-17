@@ -102,6 +102,14 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler {
 
         String contentType = URLConnection.guessContentTypeFromName(path);
 
+        if (contentType == null) {
+            if (path.endsWith(".js")) {
+                contentType = "application/javascript";
+            } else {
+                contentType = "application/octet-stream";
+            }
+        }
+
         CachableHttpResponse response = new CachableHttpResponse(HTTP_1_1, OK);
         response.setRequestUri(request.getUri());
         response.setCacheMaxAge(cacheMaxAge);
