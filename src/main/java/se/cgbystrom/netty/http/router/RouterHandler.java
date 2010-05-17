@@ -1,10 +1,6 @@
 package se.cgbystrom.netty.http.router;
 
-import org.jboss.netty.channel.ChannelEvent;
-import org.jboss.netty.channel.ChannelHandler;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.channel.*;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import se.cgbystrom.netty.http.SimpleResponseHandler;
 
@@ -42,7 +38,14 @@ public class RouterHandler extends SimpleChannelUpstreamHandler {
             boolean matchFound = false;
             for (Map.Entry<Matcher, ChannelHandler> m : routes.entrySet()) {
                 if (m.getKey().match(uri)) {
-                    ctx.getPipeline().addLast("route-generated", m.getValue());
+                    ChannelPipeline p = ctx.getPipeline();
+                    synchronized (p) {
+                        if (p.get("route-generated") == null) {
+                            p.addLast("route-generated", m.getValue());
+                        } else {
+                            p.replace("route-generated", "route-generated", m.getValue());
+                        }
+                    }
                     matchFound = true;
                     break;
                 }
