@@ -18,9 +18,15 @@ A monitor to measure the use of bandwidth in your Netty application. Place it fi
 A WebSocket client in pure Java with Netty. Useful for integration testing. Being event-driven, it's also perfect for doing heavy load testing of WebSocket servers.
 * **Thrift support**<br>
 An RPC processor for Thrift is included together with a ChannelBuffer transport.
+* **Flash Policy file handling**<br>
+Can detect and respond to Adobe Flash Policy file requests. When not used, it can simply remove itself providing minimal performance hit.
+
 
 Netty is not a web server and these tools are quite "raw" in the HTTP sense. If you intend to do anything moderately complex, please look [elsewhere](http://jetty.codehaus.org/jetty/).
 I've used it for creating small HTTP-based admin interfaces for my Netty servers. That's one use case where these tools may come in handy.
+
+This project is used in two applications the main author is working on. First one is [Beacon Push](http://beaconpush.com), a real-time push server browsers supporting a wide array
+of transports including WebSockets. And the second one is [Sonar Voice](http://sonar-api.com), which is an embeddable VoIP solution for the web/desktop/mobile with distributed voice servers.
 
 Getting started
 ----------
