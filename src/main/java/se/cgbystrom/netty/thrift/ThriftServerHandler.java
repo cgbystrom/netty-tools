@@ -32,7 +32,7 @@ import org.jboss.netty.handler.codec.http.HttpVersion;
  *
  * @author <a href="http://www.pedantique.org/">Carl Bystr&ouml;m</a>
  */
-public class ThriftServerHandler extends SimpleChannelUpstreamHandler {
+public class ThriftServerHandler extends SimpleChannelUpstreamHandler implements ThriftHandler {
     private TProcessor processor;
     private TProtocolFactory protocolFactory;
     private int responseSize = 4096;
