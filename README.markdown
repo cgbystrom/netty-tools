@@ -16,8 +16,10 @@ Supports very basic matching rules.
 A monitor to measure the use of bandwidth in your Netty application. Place it first in your pipeline and it will measure the size of sent/received ChannelBuffers.
 * **Async WebSocket client**<br>
 A WebSocket client in pure Java with Netty. Useful for integration testing. Being event-driven, it's also perfect for doing heavy load testing of WebSocket servers.
-* **Thrift support**<br>
+* **Thrift server support**<br>
 An RPC processor for Thrift is included together with a ChannelBuffer transport.
+* **Thrift client support**<br>
+Transport for enabling Thrift clients to connect to remote Thrift servers through Netty. Thanks Davide Inglima!
 * **Flash Policy file handling**<br>
 Can detect and respond to Adobe Flash Policy file requests. When not used, it can simply remove itself providing minimal performance hit.
 
@@ -58,6 +60,7 @@ As of now, please see the tests for example usage.
 ## Authors
 
 - Carl Bystr&ouml;m <http://www.pedantique.org/>
+- Davide Inglima (Thrift client support)
 
 ## License
 
