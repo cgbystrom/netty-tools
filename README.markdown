@@ -46,13 +46,14 @@ Use the following dependency block to import:
     <dependency>
         <groupId>se.cgbystrom.netty</groupId>
         <artifactId>netty-tools</artifactId>
-        <version>1.0.2</version>
+        <version>1.1.0</version>
     </dependency>
 
 ## Examples
 As of now, please see the tests for example usage.
 
 ## Version history
+* 1.1.0 - Thrift client and Flash Policy file handler
 * 1.0.2 - Async WebSocket client, Thrift support + various bug fixes
 * 1.0.1 - Internal version
 * 1.0.0 - Initial version
