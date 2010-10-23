@@ -32,7 +32,7 @@ import org.jboss.netty.handler.codec.http.HttpVersion;
  *
  * @author <a href="http://www.pedantique.org/">Carl Bystr&ouml;m</a>
  */
-public class ThriftHandler extends SimpleChannelUpstreamHandler {
+public class ThriftServerHandler extends SimpleChannelUpstreamHandler {
     private TProcessor processor;
     private TProtocolFactory protocolFactory;
     private int responseSize = 4096;
@@ -41,7 +41,7 @@ public class ThriftHandler extends SimpleChannelUpstreamHandler {
      * Creates a Thrift processor handler with the default binary protocol
      * @param processor Processor to handle incoming calls
      */
-    public ThriftHandler(TProcessor processor) {
+    public ThriftServerHandler(TProcessor processor) {
         this.processor = processor;
         this.protocolFactory = new TBinaryProtocol.Factory();
     }
@@ -51,7 +51,7 @@ public class ThriftHandler extends SimpleChannelUpstreamHandler {
      * @param processor Processor to handle incoming calls
      * @param protocolFactory Protocol factory to use when encoding/decoding incoming calls.
      */
-    public ThriftHandler(TProcessor processor, TProtocolFactory protocolFactory) {
+    public ThriftServerHandler(TProcessor processor, TProtocolFactory protocolFactory) {
         this.processor = processor;
         this.protocolFactory = protocolFactory;
     }

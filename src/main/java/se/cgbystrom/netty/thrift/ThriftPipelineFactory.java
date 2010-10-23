@@ -8,14 +8,14 @@ import org.jboss.netty.handler.codec.frame.LengthFieldPrepender;
 import static org.jboss.netty.channel.Channels.pipeline;
 
 public class ThriftPipelineFactory implements ChannelPipelineFactory {
-    private ThriftHandler handler;
+    private ThriftServerHandler handler;
     private int maxFrameSize = 512 * 1024;
 
-    public ThriftPipelineFactory(ThriftHandler handler) {
+    public ThriftPipelineFactory(ThriftServerHandler handler) {
         this.handler = handler;
     }
 
-    public ThriftPipelineFactory(ThriftHandler handler, int maxFrameSize)	{
+    public ThriftPipelineFactory(ThriftServerHandler handler, int maxFrameSize)	{
         this(handler);
         this.maxFrameSize = maxFrameSize;
     }
