@@ -7,6 +7,7 @@ import static org.jboss.netty.handler.codec.http.HttpResponseStatus.*;
 import static org.jboss.netty.handler.codec.http.HttpVersion.*;
 
 import org.jboss.netty.buffer.ChannelBuffers;
+import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.*;
 import org.jboss.netty.handler.codec.frame.TooLongFrameException;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
@@ -19,12 +20,9 @@ import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.handler.stream.ChunkedFile;
 import org.jboss.netty.util.CharsetUtil;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.RandomAccessFile;
-import java.io.UnsupportedEncodingException;
-import java.net.URLConnection;
-import java.net.URLDecoder;
+import javax.activation.MimetypesFileTypeMap;
+import java.io.*;
+import java.net.*;
 
 /**
  * A file server that can serve files from file system and class path.
@@ -36,15 +34,20 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler {
     private String rootPath;
     private String stripFromUri;
     private int cacheMaxAge = -1;
+    private boolean fromClasspath = false;
+    private MimetypesFileTypeMap fileTypeMap = new MimetypesFileTypeMap();
 
     public FileServerHandler(String path) {
         if (path.startsWith("classpath://")) {
-            rootPath = getClass().getResource(path.replace("classpath://", "")).getPath();
+            fromClasspath = true;
+            //rootPath = getClass().getResource(path.replace("classpath://", "")).getPath();
+            rootPath = path.replace("classpath://", "");
             if (rootPath.lastIndexOf("/") == rootPath.length() -1)
                 rootPath = rootPath.substring(0, rootPath.length() -1);
         } else {
             rootPath = path;
         }
+        rootPath = rootPath.replace(File.separatorChar, '/');
     }
 
     public FileServerHandler(String path, String stripFromUri) {
@@ -81,79 +84,61 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler {
             return;
         }
 
-        File file = new File(path);
-        if (file.isHidden() || !file.exists()) {
+
+        ChannelBuffer content = getFileContent(path);
+        if (content == null) {
             sendError(ctx, NOT_FOUND);
             return;
         }
-        if (!file.isFile()) {
-            sendError(ctx, FORBIDDEN);
-            return;
-        }
 
-        RandomAccessFile raf;
-        try {
-            raf = new RandomAccessFile(file, "r");
-        } catch (FileNotFoundException fnfe) {
-            sendError(ctx, NOT_FOUND);
-            return;
-        }
-        long fileLength = raf.length();
-
-        String contentType = URLConnection.guessContentTypeFromName(path);
-
-        if (contentType == null) {
-            if (path.endsWith(".js")) {
-                contentType = "application/javascript";
-            } else {
-                contentType = "application/octet-stream";
-            }
-        }
+        String contentType = fileTypeMap.getContentType(path);
 
         CachableHttpResponse response = new CachableHttpResponse(HTTP_1_1, OK);
         response.setRequestUri(request.getUri());
         response.setCacheMaxAge(cacheMaxAge);
-        if (contentType != null ) {
-            response.setHeader(HttpHeaders.Names.CONTENT_TYPE, contentType);
-        }
-        setContentLength(response, fileLength);
+        response.setHeader(HttpHeaders.Names.CONTENT_TYPE, contentType);
+        setContentLength(response, content.readableBytes());
 
-        Channel ch = e.getChannel();
-
-        // Write the content.
-        ChannelFuture writeFuture;
-        if (ch.getPipeline().get(SslHandler.class) != null) {
-            // Cannot use zero-copy with HTTPS.
-            ch.write(response);
-            writeFuture = ch.write(new ChunkedFile(raf, 0, fileLength, 8192));
-        } else if (cacheMaxAge > 0) {
-            // For caching to work, we will read the entire file to memory
-            byte[] b = new byte[(int)fileLength];
-            raf.read(b);
-            response.setContent(ChannelBuffers.copiedBuffer(b));
-            writeFuture = ch.write(response);
-        } else {
-            ch.write(response);
-            // No encryption - use zero-copy.
-            final FileRegion region =
-                new DefaultFileRegion(raf.getChannel(), 0, fileLength);
-            writeFuture = ch.write(region);
-            writeFuture.addListener(new ChannelFutureProgressListener() {
-                public void operationComplete(ChannelFuture future) {
-                    region.releaseExternalResources();
-                }
-
-                public void operationProgressed(
-                        ChannelFuture future, long amount, long current, long total) {
-                    System.out.printf("%s: %d / %d (+%d)%n", path, current, total, amount);
-                }
-            });
-        }
+        response.setContent(content);
+        ChannelFuture writeFuture = e.getChannel().write(response);
 
         // Decide whether to close the connection or not.
         if (!isKeepAlive(request)) {
             // Close the connection when the whole content is written out.
             writeFuture.addListener(ChannelFutureListener.CLOSE);
+        }
+    }
+
+    private ChannelBuffer getFileContent(String path) {
+        InputStream is;
+        try {
+            if (fromClasspath) {
+                is = this.getClass().getResourceAsStream(rootPath + path);
+            } else {
+                is = new FileInputStream(rootPath + path);
+            }
+
+            if (is == null) {
+                return null;
+            }
+            
+            final int maxSize = 512 * 1024;
+            ByteArrayOutputStream out = new ByteArrayOutputStream(maxSize);
+            byte[] bytes = new byte[maxSize];
+
+            while (true) {
+                int r = is.read(bytes);
+                if (r == -1) break;
+
+                out.write(bytes, 0, r);
+            }
+
+            ChannelBuffer cb = ChannelBuffers.copiedBuffer(out.toByteArray());
+            out.close();
+            is.close();
+            return cb;
+        } catch (IOException e) {
+            return null;
         }
     }
 
@@ -173,7 +158,7 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler {
         }
     }
 
-    private String sanitizeUri(String uri) {
+    private String sanitizeUri(String uri) throws URISyntaxException {
         // Decode the path.
         try {
             uri = URLDecoder.decode(uri, "UTF-8");
@@ -186,7 +171,7 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler {
         }
 
         // Convert file separators.
-        uri = uri.replace('/', File.separatorChar);
+        uri = uri.replace(File.separatorChar, '/');
 
         // Simplistic dumb security check.
         // You will have to do something serious in the production environment.
@@ -203,8 +188,7 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler {
             uri += "index.html";
         }
 
-        // Convert to absolute path.
-        return rootPath + File.separator + uri;
+        return uri;
     }
 
     private void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
