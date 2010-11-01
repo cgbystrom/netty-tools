@@ -78,7 +78,7 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-         <repository>
+        <repository>
             <id>embedded-repo</id>
             <url>file://${basedir}/embedded-repo</url>
         </repository>
