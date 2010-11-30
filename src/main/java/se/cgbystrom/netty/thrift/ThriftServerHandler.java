@@ -13,7 +13,6 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
@@ -73,6 +72,7 @@ public class ThriftServerHandler extends SimpleChannelUpstreamHandler implements
 
         if (httpRequest != null) {
             HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+            response.setHeader("Content-Length", output.readableBytes());
             response.setContent(output);
             ChannelFuture future = e.getChannel().write(response);
             if (!HttpHeaders.isKeepAlive(httpRequest)) {
