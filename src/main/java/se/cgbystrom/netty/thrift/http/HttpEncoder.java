@@ -1,4 +1,4 @@
-package se.cgbystrom.netty.http;
+package se.cgbystrom.netty.thrift.http;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
@@ -15,7 +15,6 @@ import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
  *
  * @author Davide Inglima <limacat@gmail.com>
  */
-
 public class HttpEncoder extends OneToOneEncoder {
 	
 	private final String host;

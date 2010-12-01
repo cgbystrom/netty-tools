@@ -25,13 +25,13 @@ public class ThriftClientHandler extends SimpleChannelHandler implements ThriftH
 
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
-    	Object message = e.getMessage();
-    	ChannelBuffer cb; 
-    	if (message instanceof DefaultHttpResponse) {
-    		cb = (ChannelBuffer) ((DefaultHttpResponse) message).getContent();
-    	} else {
-    		cb = (ChannelBuffer) message;
-    	}
+        Object message = e.getMessage();
+        ChannelBuffer cb;
+        if (message instanceof DefaultHttpResponse) {
+            cb = (ChannelBuffer) ((DefaultHttpResponse) message).getContent();
+        } else {
+            cb = (ChannelBuffer) message;
+        }
         while (cb.readableBytes() > 0) {
             peer.offer(cb.readByte());
         }

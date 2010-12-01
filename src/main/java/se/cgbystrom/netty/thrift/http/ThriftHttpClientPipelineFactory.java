@@ -9,9 +9,13 @@ import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.codec.http.HttpResponseDecoder;
 
-import se.cgbystrom.netty.http.HttpEncoder;
 import se.cgbystrom.netty.thrift.ThriftHandler;
 
+/**
+ * Pipeline factory for Thrift Http client
+ *
+ * @author Davide Inglima <limacat@gmail.com>
+ */
 public class ThriftHttpClientPipelineFactory implements ChannelPipelineFactory {
 
     private final ThriftHandler handler;
