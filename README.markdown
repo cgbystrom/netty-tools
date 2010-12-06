@@ -46,13 +46,14 @@ Use the following dependency block to import:
     <dependency>
         <groupId>se.cgbystrom.netty</groupId>
         <artifactId>netty-tools</artifactId>
-        <version>1.1.1</version>
+        <version>1.2.0</version>
     </dependency>
 
 ## Examples
 As of now, please see the tests for example usage.
 
 ## Version history
+* 1.2.0 - Thrift HTTP support
 * 1.1.1 - Bug fixes
 * 1.1.0 - Thrift client and Flash Policy file handler
 * 1.0.2 - Async WebSocket client, Thrift support + various bug fixes
@@ -62,7 +63,7 @@ As of now, please see the tests for example usage.
 ## Authors
 
 - Carl Bystr&ouml;m <http://www.pedantique.org/>
-- Davide Inglima (Thrift client support)
+- Davide Inglima (Thrift client and HTTP support)
 
 ## License
 
