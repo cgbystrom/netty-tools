@@ -23,7 +23,12 @@ import org.jboss.netty.channel.Channel;
  * <p/>
  * // create the netty handlers, and connect to the server
  * ThriftClientHandler handler = new ThriftClientHandler();
- * bootstrap.setPipelineFactory(new ThriftPipelineFactory(handler));
+ * <p/>
+ * // comment the following line and uncomment the next to use an Http Client. Needs an http-enabled server.
+ * ChannelPipelineFactory factory = new ThriftPipelineFactory(handler);
+ * // ChannelPipelineFactory factory = new ThriftHttpClientPipelineFactory(handler, "127.0.0.1", 8080);
+ * <p/>
+ * bootstrap.setPipelineFactory(factory);
  * Channel channel = bootstrap.connect(
  *         new InetSocketAddress(&quot;localhost&quot;, 8080)).awaitUninterruptibly()
  *         .getChannel();

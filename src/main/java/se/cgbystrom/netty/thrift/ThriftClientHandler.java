@@ -7,6 +7,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
+import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 
 /**
  * A client-side ChannelHandler for the Thrift protocol.
@@ -24,7 +25,13 @@ public class ThriftClientHandler extends SimpleChannelHandler implements ThriftH
 
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
-        ChannelBuffer cb = (ChannelBuffer)e.getMessage();
+        Object message = e.getMessage();
+        ChannelBuffer cb;
+        if (message instanceof DefaultHttpResponse) {
+            cb = (ChannelBuffer) ((DefaultHttpResponse) message).getContent();
+        } else {
+            cb = (ChannelBuffer) message;
+        }
         while (cb.readableBytes() > 0) {
             peer.offer(cb.readByte());
         }
