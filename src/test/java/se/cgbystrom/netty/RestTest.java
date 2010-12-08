@@ -7,6 +7,8 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.stream.ChunkedWriteHandler;
 import org.jboss.netty.util.CharsetUtil;
+import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import se.cgbystrom.netty.http.FileServerHandler;
 import se.cgbystrom.netty.http.rest.Request;
@@ -22,7 +24,6 @@ import static org.junit.Assert.assertEquals;
 
 public class RestTest extends BaseHttpTest {
     public static class SimpleRest {
-
         @Route(path="/api/basic1", methods={"GET", "POST"})
         public static HttpResponse basic1(HttpRequest req) {
             final Response response = new Response(HttpVersion.HTTP_1_0, HttpResponseStatus.OK);
@@ -45,6 +46,7 @@ public class RestTest extends BaseHttpTest {
         }
     }
 
+    @Before
     public void setUp() throws Exception {
         startServer(new ChunkedWriteHandler(), new RestHandler(new SimpleRest()));
         Thread.sleep(1000);
@@ -52,10 +54,19 @@ public class RestTest extends BaseHttpTest {
 
     @Test
     public void basicPath() throws Exception {
-        assertEquals("Hello Planet!", get("/api/hello"));
+        assertEquals("Hello Planet!", get("/api/basic1"));
+        //get("/api/bas", 404);
+        //get("/api/basic123", 404);
     }
 
     @Test
+    public void basicPathTrailing() throws Exception {
+        assertEquals("Hello Planet!", get("/api/basic1/"));
+    }
+
+
+    @Test
+    @Ignore
     public void basicPath2() throws Exception {
         assertEquals("Hello Planet!", get("/api/hello"));
     }

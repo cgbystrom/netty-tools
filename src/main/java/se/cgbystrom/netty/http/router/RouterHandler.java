@@ -17,15 +17,15 @@ public class RouterHandler extends SimpleChannelUpstreamHandler {
 
     public RouterHandler(LinkedHashMap<String, ChannelHandler> routes) throws Exception {
         for (Map.Entry<String, ChannelHandler> m : routes.entrySet()) {
-            if (m.getKey().startsWith(STARTS_WITH)) {
-                this.routes.put(new StartsWithMatcher(m.getKey().replace(STARTS_WITH, "")), m.getValue());
+            /*if (m.getKey().startsWith(STARTS_WITH)) {
+                this.routes.put(new Matchers.StartsWithMatcher(m.getKey().replace(STARTS_WITH, "")), m.getValue());
             } else if (m.getKey().startsWith(ENDS_WITH)) {
-                this.routes.put(new EndsWithMatcher(m.getKey().replace(ENDS_WITH, "")), m.getValue());
+                this.routes.put(new Matchers.EndsWithMatcher(m.getKey().replace(ENDS_WITH, "")), m.getValue());
             } else if (m.getKey().startsWith(EQUALS)) {
-                this.routes.put(new EqualsMatcher(m.getKey().replace(EQUALS, "")), m.getValue());
+                this.routes.put(new Matchers.EqualsMatcher(m.getKey().replace(EQUALS, "")), m.getValue());
             } else {
                 throw new Exception("No matcher found in route " + m.getKey());
-            }
+            }*/
         }
     }
 
@@ -59,39 +59,5 @@ public class RouterHandler extends SimpleChannelUpstreamHandler {
         super.handleUpstream(ctx, e);
     }
 
-    private class StartsWithMatcher implements Matcher {
-        private String route;
-
-        private StartsWithMatcher(String route) {
-            this.route = route;
-        }
-
-        public boolean match(String uri) {
-            return uri.startsWith(route);
-        }
-    }
-
-    private class EndsWithMatcher implements Matcher {
-        private String route;
-
-        private EndsWithMatcher(String route) {
-            this.route = route;
-        }
-
-        public boolean match(String uri) {
-            return uri.endsWith(route);
-        }
-    }
-
-    private class EqualsMatcher implements Matcher {
-        private String route;
-
-        private EqualsMatcher(String route) {
-            this.route = route;
-        }
-
-        public boolean match(String uri) {
-            return uri.equals(route);
-        }
-    }
+    
 }
