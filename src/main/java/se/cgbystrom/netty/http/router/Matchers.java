@@ -49,7 +49,7 @@ public class Matchers {
         private LinkedHashMap<String, String> parameters = new LinkedHashMap<String, String>();
 
         public RegexMatcher(String route, T target) {
-            Pattern parameter = Pattern.compile("<(.*)>");
+            Pattern parameter = Pattern.compile("<([a-z]+)>");
             java.util.regex.Matcher m = parameter.matcher(route);
             while (m.find()) {
                 String name = m.group(1);

@@ -41,7 +41,6 @@ public class RouterTest {
         assertEquals(helloWorld.message, router.route("").getTarget().message);
     }
 
-
     @Test
     public void basicPath() throws Exception {
         router.addRoute("/api/basic1", helloWorld);
@@ -83,7 +82,15 @@ public class RouterTest {
         assertEquals("news", m.getParameter("channel"));
     }
 
-    // Bad parameter names
-    // Multiple routes in same
-    // Complex routes
+    @Test
+    public void multipleRoutes() throws Exception {
+        router.addRoute("/api/basic1", bacon);
+        router.addRoute("/api/users", cookies);
+        router.addRoute("/api/users/<username>", helloWorld);
+        final Matcher<Dummy> m = router.route("/api/users/charlie");
+        assertEquals(helloWorld.message, m.getTarget().message);
+        assertEquals("charlie", m.getParameter("username"));
+    }
+
+    // TODO: Test bad parameter names
 }
