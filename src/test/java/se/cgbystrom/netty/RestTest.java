@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import se.cgbystrom.netty.http.FileServerHandler;
+import se.cgbystrom.netty.http.rest.ErrorHandler;
 import se.cgbystrom.netty.http.rest.Request;
 import se.cgbystrom.netty.http.rest.Response;
 import se.cgbystrom.netty.http.rest.RestHandler;
@@ -24,7 +25,7 @@ import static org.junit.Assert.assertEquals;
 
 public class RestTest extends BaseHttpTest {
     public static class SimpleRest {
-        @Route(path="/api/basic1", methods={"GET", "POST"})
+        @Route(path="/api/basic", methods={"GET", "POST"})
         public static HttpResponse basic1(HttpRequest req) {
             final Response response = new Response(HttpVersion.HTTP_1_0, HttpResponseStatus.OK);
             response.setContent(ChannelBuffers.copiedBuffer("Hello Planet!", CharsetUtil.UTF_8));
@@ -45,29 +46,49 @@ public class RestTest extends BaseHttpTest {
             return response;
         }
     }
+    public static class CustomizedRest {
+        @Route(path="/api/customized", methods={"GET", "POST"})
+        public static HttpResponse basic1(HttpRequest req) {
+            final Response response = new Response(HttpVersion.HTTP_1_0, HttpResponseStatus.OK);
+            response.setContent(ChannelBuffers.copiedBuffer("Hello Planet!", CharsetUtil.UTF_8));
+            return response;
+        }
+
+        @ErrorHandler(404)
+        public static HttpResponse notFound(HttpRequest req) {
+            final Response response = new Response(HttpVersion.HTTP_1_0, HttpResponseStatus.NOT_FOUND);
+            response.setContent(ChannelBuffers.copiedBuffer("Nope, that wasn't found", CharsetUtil.UTF_8));
+            return response;
+        }
+    }
 
     @Before
     public void setUp() throws Exception {
+    }
+
+    @Test
+    public void basic() throws Exception {
         startServer(new ChunkedWriteHandler(), new RestHandler(new SimpleRest()));
-        Thread.sleep(1000);
+        assertEquals("Hello Planet!", get("/api/basic"));
     }
 
     @Test
-    public void basicPath() throws Exception {
-        assertEquals("Hello Planet!", get("/api/basic1"));
-        //get("/api/bas", 404);
-        //get("/api/basic123", 404);
+    public void nonExisting() throws Exception {
+        startServer(new ChunkedWriteHandler(), new RestHandler(new SimpleRest()));
+        get("/api/non-existing", 404);
     }
 
     @Test
-    public void basicPathTrailing() throws Exception {
-        assertEquals("Hello Planet!", get("/api/basic1/"));
+    public void nonExistingCustomized() throws Exception {
+        startServer(new ChunkedWriteHandler(), new RestHandler(new CustomizedRest()));
+        assertEquals("Nope, that wasn't found", get("/api/non-existing", 404));
     }
 
-
-    @Test
-    @Ignore
-    public void basicPath2() throws Exception {
-        assertEquals("Hello Planet!", get("/api/hello"));
-    }
+    // 404
+    // Before, after handler, even multiple
+    // Test method routing
+    // Exception handling
+    // Non Response responses
+    // Unhandled exceptions
+    // Customized 404, 500 etc.
 }

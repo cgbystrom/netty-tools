@@ -49,8 +49,10 @@ public class BaseHttpTest {
         return new String(method.getResponseBody());
     }
 
-    protected int startServer(ChannelHandler... handlers) {
-        return startServer(new PipelineFactory(handlers));
+    protected int startServer(ChannelHandler... handlers) throws InterruptedException {
+        final int port = startServer(new PipelineFactory(handlers));
+        Thread.sleep(1000);
+        return port;
     }
 
     protected int startServer(ChannelPipelineFactory factory) {
