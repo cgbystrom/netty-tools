@@ -4,12 +4,16 @@ import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 
 import org.jboss.netty.channel.ChannelHandler;
+import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.stream.ChunkedWriteHandler;
 import org.junit.Test;
 import se.cgbystrom.netty.http.BandwidthMeterHandler;
 import se.cgbystrom.netty.http.CacheHandler;
 import se.cgbystrom.netty.http.FileServerHandler;
 import se.cgbystrom.netty.http.SimpleResponseHandler;
+import se.cgbystrom.netty.http.nsgi.BaseNsgiHttpResponse;
+import se.cgbystrom.netty.http.nsgi.NsgiCallable;
+import se.cgbystrom.netty.http.nsgi.NsgiHandler;
 import se.cgbystrom.netty.http.router.RouterHandler;
 import se.cgbystrom.netty.http.websocket.WebSocketClient;
 import se.cgbystrom.netty.http.websocket.WebSocketClientFactory;
@@ -120,4 +124,18 @@ public class HttpTest extends BaseHttpTest {
 
         assertFalse(callback.connected);
     }
+
+    @Test
+    public void nsgi() throws Exception {
+        startServer(new ChunkedWriteHandler(), new NsgiHandler(new NsgiCallable() {
+            void call(HttpRequest request, BaseNsgiHttpResponse response, NsgiCallable next) {
+                response.writeHead(200, "OK", null);
+                response.end("Din mamma");
+            }
+        }));
+
+        assertEquals("Din mamma", get("/"));
+    }
+
+
 }
