@@ -27,12 +27,12 @@ public class NsgiHandler extends SimpleChannelUpstreamHandler implements NsgiCal
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
         HttpRequest request = (HttpRequest) e.getMessage();
         BaseNsgiHttpResponse response = new BaseNsgiHttpResponse(e.getChannel());
-        current.call(request, response, this);
+        current.call(null, request, response, this);
     }
 
 
 
-    public void call(HttpRequest request, BaseNsgiHttpResponse response, NsgiCallable next) {
+    public void call(Throwable error, HttpRequest request, BaseNsgiHttpResponse response, NsgiCallable next) {
         //To change body of implemented methods use File | Settings | File Templates.
 
         // Naive impl of next in layer to call
@@ -44,7 +44,7 @@ public class NsgiHandler extends SimpleChannelUpstreamHandler implements NsgiCal
         }
 
         if (nextToCall != null) {
-            nextToCall.call(request, response, this);
+            nextToCall.call(null, request, response, this);
         }
 
     }

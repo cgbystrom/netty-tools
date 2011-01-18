@@ -129,7 +129,7 @@ public class HttpTest extends BaseHttpTest {
     @Test
     public void nsgi() throws Exception {
         startServer(new ChunkedWriteHandler(), new NsgiHandler(new NsgiCallable() {
-            void call(HttpRequest request, BaseNsgiHttpResponse response, NsgiCallable next) {
+            public void call(Throwable error, HttpRequest request, BaseNsgiHttpResponse response, NsgiCallable next) {
                 response.writeHead(200, "OK", null);
                 response.end("Din mamma");
             }
