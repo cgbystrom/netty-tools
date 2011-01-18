@@ -1,12 +1,11 @@
 package se.cgbystrom.netty.http.router;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 public class Matchers {
-    /*public static class StartsWithMatcher implements Matcher {
+    public static class StartsWithMatcher<T> implements Matcher<T> {
         private String route;
 
         public StartsWithMatcher(String route) {
@@ -16,9 +15,17 @@ public class Matchers {
         public boolean match(String uri) {
             return uri.startsWith(route);
         }
+
+        public T getTarget() {
+            return null;
+        }
+
+        public String getParameter(String name) {
+            return null;
+        }
     }
 
-    public static class EndsWithMatcher implements Matcher {
+    public static class EndsWithMatcher<T> implements Matcher<T> {
         private String route;
 
         public EndsWithMatcher(String route) {
@@ -28,9 +35,17 @@ public class Matchers {
         public boolean match(String uri) {
             return uri.endsWith(route);
         }
+
+        public T getTarget() {
+            return null;
+        }
+
+        public String getParameter(String name) {
+            return null;
+        }
     }
 
-    public static class EqualsMatcher implements Matcher {
+    public static class EqualsMatcher<T> implements Matcher<T> {
         private String route;
 
         public EqualsMatcher(String route) {
@@ -40,7 +55,15 @@ public class Matchers {
         public boolean match(String uri) {
             return uri.equals(route);
         }
-    }*/
+
+        public T getTarget() {
+            return null;
+        }
+
+        public String getParameter(String name) {
+            return null;
+        }
+    }
 
     public static class RegexMatcher<T> implements Matcher<T> {
         private Pattern pattern;

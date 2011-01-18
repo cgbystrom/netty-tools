@@ -17,7 +17,7 @@ public class RouterHandler extends SimpleChannelUpstreamHandler {
 
     public RouterHandler(LinkedHashMap<String, ChannelHandler> routes) throws Exception {
         for (Map.Entry<String, ChannelHandler> m : routes.entrySet()) {
-            /*if (m.getKey().startsWith(STARTS_WITH)) {
+            if (m.getKey().startsWith(STARTS_WITH)) {
                 this.routes.put(new Matchers.StartsWithMatcher(m.getKey().replace(STARTS_WITH, "")), m.getValue());
             } else if (m.getKey().startsWith(ENDS_WITH)) {
                 this.routes.put(new Matchers.EndsWithMatcher(m.getKey().replace(ENDS_WITH, "")), m.getValue());
@@ -25,7 +25,7 @@ public class RouterHandler extends SimpleChannelUpstreamHandler {
                 this.routes.put(new Matchers.EqualsMatcher(m.getKey().replace(EQUALS, "")), m.getValue());
             } else {
                 throw new Exception("No matcher found in route " + m.getKey());
-            }*/
+            }
         }
     }
 
