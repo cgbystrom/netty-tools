@@ -22,7 +22,7 @@ import java.util.concurrent.Executors;
 
 import static org.junit.Assert.assertEquals;
 
-public class BaseHttpTest {
+public abstract class BaseHttpTest {
     protected int port;
 
     protected File createTemporaryFile(String content) throws IOException

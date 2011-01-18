@@ -11,11 +11,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import se.cgbystrom.netty.http.FileServerHandler;
-import se.cgbystrom.netty.http.rest.ErrorHandler;
-import se.cgbystrom.netty.http.rest.Request;
-import se.cgbystrom.netty.http.rest.Response;
-import se.cgbystrom.netty.http.rest.RestHandler;
-import se.cgbystrom.netty.http.rest.Route;
+import se.cgbystrom.netty.http.rest.*;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -62,8 +58,76 @@ public class RestTest extends BaseHttpTest {
         }
     }
 
-    @Before
-    public void setUp() throws Exception {
+    public static class Before {
+        @Route(path="/api/before", methods={"GET", "POST"})
+        public static HttpResponse basic1(HttpRequest req) {
+            final Response response = new Response(HttpVersion.HTTP_1_0, HttpResponseStatus.OK);
+            response.setContent(ChannelBuffers.copiedBuffer(req.getHeader("Fake-Header"), CharsetUtil.UTF_8));
+            return response;
+        }
+
+        @BeforeHandler
+        public static HttpRequest before(HttpRequest req) {
+            req.addHeader("Fake-Header", "This is the before handler");
+            return req;
+        }
+    }
+
+    public static class MultipleBefore {
+        @Route(path="/api/before", methods={"GET", "POST"})
+        public static HttpResponse basic1(HttpRequest req) {
+            final Response response = new Response(HttpVersion.HTTP_1_0, HttpResponseStatus.OK);
+            response.setContent(ChannelBuffers.copiedBuffer(req.getHeader("Fake-Header"), CharsetUtil.UTF_8));
+            return response;
+        }
+
+        @BeforeHandler
+        public static HttpRequest before1(HttpRequest req) {
+            req.setHeader("Fake-Header", "1");
+            return req;
+        }
+
+        @BeforeHandler
+        public static HttpRequest before2(HttpRequest req) {
+            req.setHeader("Fake-Header", req.getHeader("Fake-Header").concat("2"));
+            return req;
+        }
+    }
+
+    public static class After {
+        @Route(path="/api/after", methods={"GET", "POST"})
+        public static Object basic1(HttpRequest req) {
+            return 3728;
+        }
+
+        @AfterHandler
+        public static Object after(Object response) {
+            String s = "My lucky number is " + (Integer) response;
+            final Response httpResponse = new Response(HttpVersion.HTTP_1_0, HttpResponseStatus.OK);
+            httpResponse.setContent(ChannelBuffers.copiedBuffer(s, CharsetUtil.UTF_8));
+            return httpResponse;
+        }
+    }
+
+    public static class MultipleAfter {
+        @Route(path="/api/after", methods={"GET", "POST"})
+        public static Object basic1(HttpRequest req) {
+            return 1;
+        }
+
+        @AfterHandler
+        public static Object after1(Object response) {
+            int i = (Integer)response;
+            return ++i;
+        }
+
+        @AfterHandler
+        public static Object after2(Object response) {
+            String s = "My lucky number is " + (Integer) response;
+            final Response httpResponse = new Response(HttpVersion.HTTP_1_0, HttpResponseStatus.OK);
+            httpResponse.setContent(ChannelBuffers.copiedBuffer(s, CharsetUtil.UTF_8));
+            return httpResponse;
+        }
     }
 
     @Test
@@ -84,9 +148,33 @@ public class RestTest extends BaseHttpTest {
         assertEquals("Nope, that wasn't found", get("/api/non-existing", 404));
     }
 
-    // 404
-    // Before, after handler, even multiple
-    // Test method routing
+    @Test
+    public void beforeHandler() throws Exception {
+        startServer(new ChunkedWriteHandler(), new RestHandler(new Before()));
+        assertEquals("This is the before handler", get("/api/before"));
+    }
+
+    @Test
+    public void multipleBeforeHandler() throws Exception {
+        startServer(new ChunkedWriteHandler(), new RestHandler(new MultipleBefore()));
+        assertEquals("12", get("/api/before"));
+    }
+
+    @Test
+    public void afterHandler() throws Exception {
+        startServer(new ChunkedWriteHandler(), new RestHandler(new After()));
+        assertEquals("My lucky number is 3728", get("/api/after"));
+    }
+
+    @Test
+    public void multipleAfterHandlers() throws Exception {
+        startServer(new ChunkedWriteHandler(), new RestHandler(new MultipleAfter()));
+        assertEquals("My lucky number is 2", get("/api/after"));
+    }
+
+    // Make parameters callable
+
+    // Test method POST, GET etc routing
     // Exception handling
     // Non Response responses
     // Unhandled exceptions

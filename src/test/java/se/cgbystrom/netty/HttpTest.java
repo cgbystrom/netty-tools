@@ -6,6 +6,7 @@ import static org.junit.Assert.assertEquals;
 import org.jboss.netty.channel.ChannelHandler;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.stream.ChunkedWriteHandler;
+import org.junit.Ignore;
 import org.junit.Test;
 import se.cgbystrom.netty.http.BandwidthMeterHandler;
 import se.cgbystrom.netty.http.CacheHandler;
