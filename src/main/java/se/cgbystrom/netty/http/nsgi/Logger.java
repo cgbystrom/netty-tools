@@ -3,7 +3,7 @@ package se.cgbystrom.netty.http.nsgi;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 
 public class Logger implements NsgiCallable {
-    public void call(Throwable error, final HttpRequest request, final BaseNsgiHttpResponse response, NsgiCallable next) {
+    public void call(Throwable error, final HttpRequest request, final BaseNsgiHttpResponse response, NsgiCallable next) throws Exception {
         // Overload writeHead() to snag status code and headers
         // Overload end to write log output and response time
 

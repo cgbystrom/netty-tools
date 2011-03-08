@@ -40,6 +40,7 @@ public class BaseNsgiHttpResponse extends DefaultHttpResponse implements Channel
     public void writeHead(int statusCode, String reasonPhrase, String[] headers) {
         pendingWrites = true;
         headersSent = true;
+        this.setStatus(HttpResponseStatus.valueOf(statusCode));
         channel.write(this).addListener(this);
     }
 
