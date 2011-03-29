@@ -20,10 +20,9 @@ import java.util.concurrent.Executors;
  */
 public class WebSocketClientFactory {
 
-    private ClientBootstrap bootstrap = new ClientBootstrap(
-                new NioClientSocketChannelFactory(
-                        Executors.newCachedThreadPool(),
-                        Executors.newCachedThreadPool()));
+    private NioClientSocketChannelFactory socketChannelFactory = new NioClientSocketChannelFactory(
+            Executors.newCachedThreadPool(),
+            Executors.newCachedThreadPool());
 
     /**
      * Create a new WebSocket client
@@ -32,6 +31,8 @@ public class WebSocketClientFactory {
      * @return A WebSocket client. Call {@link WebSocketClient#connect()} to connect.
      */
     public WebSocketClient newClient(final URI url, final WebSocketCallback callback) {
+        ClientBootstrap bootstrap = new ClientBootstrap(socketChannelFactory);
+
         String protocol = url.getScheme();
         if (!protocol.equals("ws") && !protocol.equals("wss")) {
             throw new IllegalArgumentException("Unsupported protocol: " + protocol);
