@@ -46,7 +46,11 @@ public class WebSocketClientHandler extends SimpleChannelUpstreamHandler impleme
 
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
-        HttpRequest request = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, url.getPath());
+        String path = url.getPath();
+        if (url.getQuery() != null && url.getQuery().length() > 0) {
+            path = url.getPath() + "?" + url.getQuery();
+        }
+        HttpRequest request = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, path);
         request.addHeader(Names.UPGRADE, Values.WEBSOCKET);
         request.addHeader(Names.CONNECTION, Values.UPGRADE);
         request.addHeader(Names.HOST, url.getHost());
@@ -102,5 +106,13 @@ public class WebSocketClientHandler extends SimpleChannelUpstreamHandler impleme
 
     public ChannelFuture send(WebSocketFrame frame) {
         return channel.write(frame);
+    }
+
+    public URI getUrl() {
+        return url;
+    }
+
+    public void setUrl(URI url) {
+        this.url = url;
     }
 }
