@@ -10,12 +10,13 @@ import org.jboss.netty.util.Timer;
 import org.jboss.netty.util.TimerTask;
 
 import java.util.Collection;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class BandwidthMeterHandler extends SimpleChannelHandler {
     private static final int RESOLUTION = 1000;
+    private static final int HISTORY_SIZE = 60; // Keep a 60 second history
 
     private AtomicLong bytesSent = new AtomicLong();
     private AtomicLong bytesReceived = new AtomicLong();
@@ -29,8 +30,8 @@ public class BandwidthMeterHandler extends SimpleChannelHandler {
         private long lastTimestamp = 0;
         private long lastBytesSent = bytesSent.get();
         private long lastBytesReceived = bytesReceived.get();
-        private ArrayBlockingQueue<Long> sentHistory = new ArrayBlockingQueue<Long>(60); // Keep a 60 second history
-        private ArrayBlockingQueue<Long> receivedHistory = new ArrayBlockingQueue<Long>(60); // Keep a 60 second history
+        private LinkedList<Long> sentHistory = new LinkedList<Long>();
+        private LinkedList<Long> receivedHistory = new LinkedList<Long>();
 
         public void run(Timeout timeout) throws Exception {
             if (timeout.isCancelled())
@@ -51,6 +52,13 @@ public class BandwidthMeterHandler extends SimpleChannelHandler {
 
             sentHistory.add(sent / deltaTime);
             receivedHistory.add(received / deltaTime);
+
+            if (sentHistory.size() > HISTORY_SIZE)
+                sentHistory.removeFirst();
+
+            if (receivedHistory.size() > HISTORY_SIZE)
+                receivedHistory.removeFirst();
+            
             bytesSentPerSecond.set(average(sentHistory) * 1000);
             bytesReceivedPerSecond.set(average(receivedHistory) * 1000);
 
