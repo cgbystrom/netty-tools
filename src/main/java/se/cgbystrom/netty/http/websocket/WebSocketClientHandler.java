@@ -62,7 +62,7 @@ public class WebSocketClientHandler extends SimpleChannelUpstreamHandler impleme
     }
 
     @Override
-    public void channelDisconnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+    public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
         callback.onDisconnect(this);
         handshakeCompleted = false;
     }
