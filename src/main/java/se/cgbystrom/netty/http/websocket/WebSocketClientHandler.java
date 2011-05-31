@@ -20,6 +20,7 @@ import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameDecoder;
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameEncoder;
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names;
 import org.jboss.netty.handler.codec.http.HttpHeaders.Values;
+import org.jboss.netty.util.CharsetUtil;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -87,13 +88,20 @@ public class WebSocketClientHandler extends SimpleChannelUpstreamHandler impleme
             return;
         }
 
+        if (e.getMessage() instanceof HttpResponse) {
+            HttpResponse response = (HttpResponse) e.getMessage();
+            throw new WebSocketException("Unexpected HttpResponse (status=" + response.getStatus() + ", content=" + response.getContent().toString(CharsetUtil.UTF_8) + ")");
+        }
+
         DefaultWebSocketFrame frame = (DefaultWebSocketFrame)e.getMessage();
         callback.onMessage(this, frame);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
-        callback.onError(e.getCause());
+        final Throwable t = e.getCause();
+        callback.onError(t);    
+        e.getChannel().close();
     }
 
     public ChannelFuture connect() {
