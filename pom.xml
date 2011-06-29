@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>se.cgbystrom.netty</groupId>
+    <groupId>com.cgbystrom</groupId>
     <artifactId>netty-tools</artifactId>
     <version>1.2.7-SNAPSHOT</version>
     <name>netty-tools</name>
@@ -80,10 +80,6 @@
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
-        </repository>
-        <repository>
-            <id>embedded-repo</id>
-            <url>file://${basedir}/embedded-repo</url>
         </repository>
         <repository>
             <id>maven2-repository.dev.java.net</id>
