@@ -20,7 +20,7 @@
     <scm>
         <connection>scm:git:git@github.com:cgbystrom/netty-tools.git</connection>
         <url>scm:git:git@github.com:cgbystrom/netty-tools.git</url>
-        <developerConnection>git@github.com:cgbystrom/netty-tools.git</developerConnection>
+        <developerConnection>scm:git:git@github.com:cgbystrom/netty-tools.git</developerConnection>
     </scm>
 
     <developers>
