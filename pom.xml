@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.cgbystrom</groupId>
     <artifactId>netty-tools</artifactId>
@@ -15,7 +20,7 @@
     <scm>
         <connection>scm:git:git@github.com:cgbystrom/netty-tools.git</connection>
         <url>scm:git:git@github.com:cgbystrom/netty-tools.git</url>
-        <developerConnection>scm:git:git@github.com:cgbystrom/netty-tools.git</developerConnection>
+        <developerConnection>git@github.com:cgbystrom/netty-tools.git</developerConnection>
     </scm>
 
     <developers>
