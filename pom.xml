@@ -18,6 +18,16 @@
         <developerConnection>scm:git:git@github.com:cgbystrom/netty-tools.git</developerConnection>
     </scm>
 
+    <developers>
+        <developer>
+            <id>cgbystrom</id>
+            <name>Carl Byström</name>
+            <email>cgbystrom@gmail.com</email>
+            <url>http://cgbystrom.com</url>
+            <timezone>+1</timezone>
+        </developer>
+    </developers>
+
     <licenses>
         <license>
             <name>MIT License</name>
