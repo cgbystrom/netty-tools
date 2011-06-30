@@ -27,8 +27,8 @@ Can detect and respond to Adobe Flash Policy file requests. When not used, it ca
 Netty is not a web server and these tools are quite "raw" in the HTTP sense. If you intend to do anything moderately complex, please look [elsewhere](http://jetty.codehaus.org/jetty/).
 I've used it for creating small HTTP-based admin interfaces for my Netty servers. That's one use case where these tools may come in handy.
 
-This project is used in two applications the main author is working on. First one is [Beacon Push](http://beaconpush.com), a real-time push server browsers supporting a wide array
-of transports including WebSockets. And the second one is [Sonar Voice](http://sonar-api.com), which is an embeddable VoIP solution for the web/desktop/mobile with distributed voice servers.
+This project is used in two applications the main author is working on. First one is [Beaconpush](http://beaconpush.com), a real-time push server for browsers and mobile phones supporting a wide array
+of transports including Web Sockets. And the second one is [Sonar Voice](http://sonar-api.com), which is an embeddable VoIP solution for the web/desktop/mobile with distributed voice servers.
 
 Getting started
 ----------
