@@ -54,7 +54,7 @@ As of now, please see the tests for example usage.
 
 ## Authors
 
-- Carl Bystr&ouml;m <http://www.pedantique.org/>
+- <a href="http://cgbystrom.com">Carl Bystr&ouml;m</a> (@<a href="http://twitter.com/cgbystrom">cgbystrom</a> on Twitter)
 - Davide Inglima (Thrift client and HTTP support)
 
 ## License
