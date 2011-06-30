@@ -32,21 +32,13 @@ of transports including WebSockets. And the second one is [Sonar Voice](http://s
 
 Getting started
 ----------
-To get up and running try one of the following:
-### A) Download the binary
-Get the pre-compiled JAR and put it on your class path. Easy as pie!
-### B) Compile it yourself
-You can also compile it yourself using Maven. Get the source code and run:
-
-    mvn install
-
-This will install the library in your local Maven repository.
-Use the following dependency block to import:
+netty-tools is available on Maven Central. Just include the dependency in your POM file and you'll
+be up and running:
 
     <dependency>
-        <groupId>se.cgbystrom.netty</groupId>
+        <groupId>com.cgbystrom</groupId>
         <artifactId>netty-tools</artifactId>
-        <version>1.2.0</version>
+        <version>1.2.7</version>
     </dependency>
 
 ## Examples
