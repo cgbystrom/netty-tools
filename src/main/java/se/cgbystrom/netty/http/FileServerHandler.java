@@ -6,9 +6,17 @@ import static org.jboss.netty.handler.codec.http.HttpMethod.*;
 import static org.jboss.netty.handler.codec.http.HttpResponseStatus.*;
 import static org.jboss.netty.handler.codec.http.HttpVersion.*;
 
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.*;
+import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
+import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.ExceptionEvent;
+import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.frame.TooLongFrameException;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
@@ -16,8 +24,6 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
-import org.jboss.netty.handler.ssl.SslHandler;
-import org.jboss.netty.handler.stream.ChunkedFile;
 import org.jboss.netty.util.CharsetUtil;
 
 import javax.activation.MimetypesFileTypeMap;
@@ -30,7 +36,8 @@ import java.net.*;
  * If you wish to customize the error message, please sub-class and override sendError().
  * Based on Trustin Lee's original file serving example
  */
-public class FileServerHandler extends SimpleChannelUpstreamHandler {
+public class FileServerHandler extends SimpleChannelUpstreamHandler
+{
     private String rootPath;
     private String stripFromUri;
     private int cacheMaxAge = -1;
@@ -110,36 +117,22 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler {
     }
 
     private ChannelBuffer getFileContent(String path) {
-        InputStream is;
         try {
+            File file;
+
             if (fromClasspath) {
-                is = this.getClass().getResourceAsStream(rootPath + path);
+                file = new File(this.getClass().getResource(rootPath + path).getFile());
             } else {
-                is = new FileInputStream(rootPath + path);
+                file = new File(rootPath + path);
             }
 
-            if (is == null) {
-                return null;
-            }
-            
-            final int maxSize = 512 * 1024;
-            ByteArrayOutputStream out = new ByteArrayOutputStream(maxSize);
-            byte[] bytes = new byte[maxSize];
-
-            while (true) {
-                int r = is.read(bytes);
-                if (r == -1) break;
-
-                out.write(bytes, 0, r);
-            }
-
-            ChannelBuffer cb = ChannelBuffers.copiedBuffer(out.toByteArray());
-            out.close();
-            is.close();
-            return cb;
+            FileChannel fc = new RandomAccessFile(file, "r").getChannel();
+            ByteBuffer roBuf = fc.map(FileChannel.MapMode.READ_ONLY, 0, (int)fc.size());
+            return ChannelBuffers.copiedBuffer(roBuf);
         } catch (IOException e) {
-            return null;
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
+      return null;
     }
 
     @Override
