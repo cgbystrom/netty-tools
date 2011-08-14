@@ -130,7 +130,7 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler
             ByteBuffer roBuf = fc.map(FileChannel.MapMode.READ_ONLY, 0, (int)fc.size());
             return ChannelBuffers.copiedBuffer(roBuf);
         } catch (IOException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            e.printStackTrace();
         }
       return null;
     }
