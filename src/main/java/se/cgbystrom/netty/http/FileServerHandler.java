@@ -92,8 +92,8 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler
         }
 
 
-        ChannelBuffer content = getFileContent(path);
-        if (content == null) {
+        FileContentInfo contentInfo = getFileContent(path);
+        if (contentInfo == null) {
             sendError(ctx, NOT_FOUND);
             return;
         }
@@ -104,9 +104,10 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler
         response.setRequestUri(request.getUri());
         response.setCacheMaxAge(cacheMaxAge);
         response.setHeader(HttpHeaders.Names.CONTENT_TYPE, contentType);
-        setContentLength(response, content.readableBytes());
+        setContentLength(response, contentInfo.content.readableBytes());
 
-        response.setContent(content);
+        response.setBackingFileChannel(contentInfo.fileChannel);
+        response.setContent(contentInfo.content);
         ChannelFuture writeFuture = e.getChannel().write(response);
 
         // Decide whether to close the connection or not.
@@ -116,7 +117,21 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler
         }
     }
 
-    private ChannelBuffer getFileContent(String path) {
+    private class FileContentInfo
+    {
+      public ChannelBuffer content;
+      public FileChannel fileChannel;
+      public FileContentInfo(FileChannel fileChannel, ChannelBuffer content)
+      {
+        this.fileChannel = fileChannel;
+        this.content = content;
+      }
+    }
+
+    private FileContentInfo getFileContent(String path) {
+        FileChannel fc = null;
+        FileContentInfo result = null;
+
         try {
             File file;
 
@@ -126,13 +141,29 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler
                 file = new File(rootPath + path);
             }
 
-            FileChannel fc = new RandomAccessFile(file, "r").getChannel();
+            fc = new RandomAccessFile(file, "r").getChannel();
             ByteBuffer roBuf = fc.map(FileChannel.MapMode.READ_ONLY, 0, (int)fc.size());
-            return ChannelBuffers.copiedBuffer(roBuf);
+            result = new FileContentInfo(fc, ChannelBuffers.wrappedBuffer(roBuf));
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if (result == null)
+            {
+                if (fc != null)
+                {
+                    try
+                    {
+                        fc.close();
+                    }
+                    catch (IOException e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+            }
         }
-      return null;
+
+        return result;
     }
 
     @Override
