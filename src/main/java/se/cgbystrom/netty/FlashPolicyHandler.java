@@ -58,7 +58,11 @@ public class FlashPolicyHandler extends FrameDecoder {
         boolean isFlashPolicyRequest = (magic1 == '<' && magic2 == 'p');
 
         if (isFlashPolicyRequest) {
-            buffer.skipBytes(buffer.readableBytes()); // Discard everything
+            // Discard everything
+            buffer.skipBytes(buffer.readableBytes());
+
+            // Make sure we don't have any downstream handlers interfering with our injected write of policy request.
+            removeAllPipelineHandlers(channel.getPipeline());
             channel.write(policyResponse).addListener(ChannelFutureListener.CLOSE);
             return null;
         }
@@ -67,5 +71,11 @@ public class FlashPolicyHandler extends FrameDecoder {
         // down the pipeline
         ctx.getPipeline().remove(this);
         return buffer.readBytes(buffer.readableBytes());
+    }
+    
+    private void removeAllPipelineHandlers(ChannelPipeline pipeline) {
+        while (pipeline.getFirst() != null) {
+            pipeline.removeFirst();
+        }
     }
 }
