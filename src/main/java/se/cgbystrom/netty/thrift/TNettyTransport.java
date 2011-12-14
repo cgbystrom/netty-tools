@@ -5,9 +5,9 @@ import java.util.concurrent.BlockingQueue;
 
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.Channel;
+import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ChannelBuffers;
+import io.netty.channel.Channel;
 
 /**
  * Bridge between Netty and the client-side TTransport.

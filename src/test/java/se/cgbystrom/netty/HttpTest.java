@@ -5,20 +5,22 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 
-import org.jboss.netty.bootstrap.ServerBootstrap;
-import org.jboss.netty.channel.ChannelException;
-import org.jboss.netty.channel.ChannelHandler;
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
-import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
-import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
-import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
-import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame;
-import org.jboss.netty.handler.codec.http.websocket.WebSocketFrame;
-import org.jboss.netty.handler.stream.ChunkedWriteHandler;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelException;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelPipelineFactory;
+import io.netty.channel.Channels;
+import io.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import io.netty.handler.codec.http.HttpChunkAggregator;
+import io.netty.handler.codec.http.HttpRequestDecoder;
+import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketFrame;
+
+import io.netty.handler.stream.ChunkedWriteHandler;
 import org.junit.Test;
+
 import se.cgbystrom.netty.http.BandwidthMeterHandler;
 import se.cgbystrom.netty.http.CacheHandler;
 import se.cgbystrom.netty.http.FileServerHandler;
@@ -135,7 +137,7 @@ public class HttpTest {
         Thread.sleep(1000);
 
         assertTrue(callback.connected);
-        assertEquals(TestClient.TEST_MESSAGE.toUpperCase(), callback.messageReceived);
+        assertEquals(TestClient.TEST_MESSAGE, callback.messageReceived);
         client.disconnect();
         Thread.sleep(1000);
 
@@ -231,7 +233,7 @@ public class HttpTest {
         public void onConnect(WebSocketClient client) {
             System.out.println("WebSocket connected!");
             connected = true;
-            client.send(new DefaultWebSocketFrame(TEST_MESSAGE));
+            client.send(new TextWebSocketFrame(TEST_MESSAGE));
         }
 
         public void onDisconnect(WebSocketClient client) {
@@ -240,8 +242,8 @@ public class HttpTest {
         }
 
         public void onMessage(WebSocketClient client, WebSocketFrame frame) {
-            System.out.println("Message:" + frame.getTextData());
-            messageReceived = frame.getTextData();
+            System.out.println("Message:" + ((TextWebSocketFrame)frame).getText());
+            messageReceived = ((TextWebSocketFrame)frame).getText();
         }
 
         public void onError(Throwable t) {

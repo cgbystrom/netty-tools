@@ -1,12 +1,12 @@
 package se.cgbystrom.netty.thrift;
 
-import org.jboss.netty.channel.ChannelHandler;
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.handler.codec.frame.LengthFieldBasedFrameDecoder;
-import org.jboss.netty.handler.codec.frame.LengthFieldPrepender;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelPipelineFactory;
+import io.netty.handler.codec.frame.LengthFieldBasedFrameDecoder;
+import io.netty.handler.codec.frame.LengthFieldPrepender;
 
-import static org.jboss.netty.channel.Channels.pipeline;
+import static io.netty.channel.Channels.pipeline;
 
 /**
  * Pipeline factory for Thrift servers and clients

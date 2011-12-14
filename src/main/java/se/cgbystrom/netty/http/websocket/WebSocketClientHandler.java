@@ -1,26 +1,25 @@
 package se.cgbystrom.netty.http.websocket;
 
-import org.jboss.netty.bootstrap.ClientBootstrap;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.channel.ExceptionEvent;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.handler.codec.http.DefaultHttpRequest;
-import org.jboss.netty.handler.codec.http.HttpMethod;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.HttpVersion;
-import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame;
-import org.jboss.netty.handler.codec.http.websocket.WebSocketFrame;
-import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameDecoder;
-import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameEncoder;
-import org.jboss.netty.handler.codec.http.HttpHeaders.Names;
-import org.jboss.netty.handler.codec.http.HttpHeaders.Values;
-import org.jboss.netty.util.CharsetUtil;
+import io.netty.bootstrap.ClientBootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelStateEvent;
+import io.netty.channel.ExceptionEvent;
+import io.netty.channel.MessageEvent;
+import io.netty.channel.SimpleChannelUpstreamHandler;
+import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.HttpHeaders.Names;
+import io.netty.handler.codec.http.HttpHeaders.Values;
+import io.netty.handler.codec.http.websocketx.WebSocket13FrameDecoder;
+import io.netty.handler.codec.http.websocketx.WebSocket13FrameEncoder;
+import io.netty.handler.codec.http.websocketx.WebSocketFrame;
+import io.netty.util.CharsetUtil;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -58,7 +57,7 @@ public class WebSocketClientHandler extends SimpleChannelUpstreamHandler impleme
         request.addHeader(Names.ORIGIN, "http://" + url.getHost());
 
         e.getChannel().write(request);
-        ctx.getPipeline().replace("encoder", "ws-encoder", new WebSocketFrameEncoder());
+        ctx.getPipeline().replace("encoder", "ws-encoder", new WebSocket13FrameEncoder(true));
         channel = e.getChannel();
     }
 
@@ -83,7 +82,7 @@ public class WebSocketClientHandler extends SimpleChannelUpstreamHandler impleme
             }
             
             handshakeCompleted = true;
-            ctx.getPipeline().replace("decoder", "ws-decoder", new WebSocketFrameDecoder());
+            ctx.getPipeline().replace("decoder", "ws-decoder", new WebSocket13FrameDecoder(true,false));
             callback.onConnect(this);
             return;
         }
@@ -93,7 +92,7 @@ public class WebSocketClientHandler extends SimpleChannelUpstreamHandler impleme
             throw new WebSocketException("Unexpected HttpResponse (status=" + response.getStatus() + ", content=" + response.getContent().toString(CharsetUtil.UTF_8) + ")");
         }
 
-        DefaultWebSocketFrame frame = (DefaultWebSocketFrame)e.getMessage();
+        WebSocketFrame frame = (WebSocketFrame)e.getMessage();
         callback.onMessage(this, frame);
     }
 

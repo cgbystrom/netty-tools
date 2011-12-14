@@ -1,7 +1,7 @@
 package se.cgbystrom.netty.http.websocket;
 
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.handler.codec.http.websocket.WebSocketFrame;
+import io.netty.channel.ChannelFuture;
+import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 
 /**
  * A WebSocket client

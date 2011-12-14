@@ -1,7 +1,7 @@
 package se.cgbystrom.netty.http.router;
 
-import org.jboss.netty.channel.*;
-import org.jboss.netty.handler.codec.http.HttpRequest;
+import io.netty.channel.*;
+import io.netty.handler.codec.http.HttpRequest;
 import se.cgbystrom.netty.http.SimpleResponseHandler;
 
 import java.util.LinkedHashMap;

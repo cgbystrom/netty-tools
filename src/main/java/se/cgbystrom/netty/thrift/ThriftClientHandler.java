@@ -3,11 +3,11 @@ package se.cgbystrom.netty.thrift;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelHandler;
-import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.buffer.ChannelBuffer;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.MessageEvent;
+import io.netty.channel.SimpleChannelHandler;
+import io.netty.handler.codec.http.DefaultHttpResponse;
 
 /**
  * A client-side ChannelHandler for the Thrift protocol.
