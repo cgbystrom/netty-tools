@@ -1,13 +1,13 @@
 package se.cgbystrom.netty.http;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.ChannelEvent;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelHandler;
-import org.jboss.netty.util.Timeout;
-import org.jboss.netty.util.Timer;
-import org.jboss.netty.util.TimerTask;
+import io.netty.buffer.ChannelBuffer;
+import io.netty.channel.ChannelEvent;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.MessageEvent;
+import io.netty.channel.SimpleChannelHandler;
+import io.netty.util.Timeout;
+import io.netty.util.Timer;
+import io.netty.util.TimerTask;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -81,7 +81,7 @@ public class BandwidthMeterHandler extends SimpleChannelHandler {
     /**
      * Constructs a new instance without time based statistics.
      * {@link #getBytesSentPerSecond()} and {@link #getBytesReceivedPerSecond()} will not work.
-     * For these statistics, instantiate with {@link #BandwidthMeterHandler(org.jboss.netty.util.Timer)} instead.
+     * For these statistics, instantiate with {@link #BandwidthMeterHandler(io.netty.util.Timer)} instead.
      */
     public BandwidthMeterHandler() {
     }

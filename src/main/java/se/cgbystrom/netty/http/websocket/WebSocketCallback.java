@@ -1,6 +1,7 @@
 package se.cgbystrom.netty.http.websocket;
 
-import org.jboss.netty.handler.codec.http.websocket.WebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketFrame;
+
 
 /**
  * Callbacks for the {@link WebSocketClient}.

@@ -2,7 +2,7 @@ package se.cgbystrom.netty.thrift;
 
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ChannelBuffer;
 
 /**
  * Thrift transport based on JBoss Netty's ChannelBuffers
