@@ -6,13 +6,11 @@ import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
-import org.jboss.netty.channel.ChannelException;
-import org.jboss.netty.channel.ChannelHandler;
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.Channels;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.channel.*;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
+import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame;
@@ -102,6 +100,23 @@ public class HttpTest {
         assertEquals(equals, get("/perfect-match"));
         assertFalse(equals.equals(get("/perfect-match/test", 404)));
         assertEquals("Not found", get("/not-found", 404));
+    }
+
+    @Test(expected=org.apache.commons.httpclient.NoHttpResponseException.class)
+    public void routerSkip() throws Exception {
+        LinkedHashMap<String, ChannelHandler> routes = new LinkedHashMap<String, ChannelHandler>();
+
+
+        startServer(new ChunkedWriteHandler(), new RouterHandler(routes, false), new ChannelUpstreamHandler() {
+            @Override
+            public void handleUpstream(ChannelHandlerContext ctx, ChannelEvent e) throws Exception {
+                if (e instanceof MessageEvent && ((MessageEvent)e).getMessage() instanceof HttpRequest) {
+                    e.getChannel().close();
+    }               return;
+            }
+        });
+
+        get("/whatever");
     }
 
     @Test
