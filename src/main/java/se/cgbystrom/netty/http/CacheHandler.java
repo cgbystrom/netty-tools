@@ -1,5 +1,6 @@
 package se.cgbystrom.netty.http;
 
+import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.*;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
@@ -28,13 +29,25 @@ public class CacheHandler extends SimpleChannelHandler {
             HttpRequest request = (HttpRequest)((MessageEvent)e).getMessage();
 
             CacheEntry ce = cache.get(request.getUri());
-            if (ce != null && ce.expires > System.currentTimeMillis()) {
-                ChannelFuture f = e.getChannel().write(ce.content);
-                f.addListener(ChannelFutureListener.CLOSE);
-                if (!HttpHeaders.isKeepAlive(request)) {
+            if (ce != null) {
+                if (ce.expires > System.currentTimeMillis())
+                {
+                    ChannelFuture f = e.getChannel().write(ce.content);
                     f.addListener(ChannelFutureListener.CLOSE);
+                    if (!HttpHeaders.isKeepAlive(request)) {
+                        f.addListener(ChannelFutureListener.CLOSE);
+                    }
+                    return;
                 }
-                return;
+                else
+                {
+                    if (ce.content instanceof CachableHttpResponse)
+                    {
+                        CachableHttpResponse r = (CachableHttpResponse)ce.content;
+                        r.dispose();
+                    }
+                    cache.remove(ce);
+                }
             }
         }
 
