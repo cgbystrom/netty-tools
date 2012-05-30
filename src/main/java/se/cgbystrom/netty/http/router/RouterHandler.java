@@ -3,6 +3,7 @@ package se.cgbystrom.netty.http.router;
 import org.jboss.netty.channel.*;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import se.cgbystrom.netty.http.SimpleResponseHandler;
+import se.cgbystrom.netty.http.router.Matcher;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -14,15 +15,25 @@ public class RouterHandler extends SimpleChannelUpstreamHandler {
     private static final String ENDS_WITH = "endsWith:";
     private static final String EQUALS = "equals:";
     private static final ChannelHandler HANDLER_404 = new SimpleResponseHandler("Not found", 404);
+    private ChannelHandler defaultHandler;;
+    
     private boolean handleNotFound;
 
+    public RouterHandler(LinkedHashMap<String, ChannelHandler> routes, boolean handleNotFound, ChannelHandler defaultHandler) throws Exception {
+        this.handleNotFound = handleNotFound;
+        this.defaultHandler = defaultHandler;
+        setupRoutes(routes);
+    }
+    
     public RouterHandler(LinkedHashMap<String, ChannelHandler> routes, boolean handleNotFound) throws Exception {
         this.handleNotFound = handleNotFound;
+        this.defaultHandler = null;
         setupRoutes(routes);
     }
 
     public RouterHandler(LinkedHashMap<String, ChannelHandler> routes) throws Exception {
         this.handleNotFound = true;
+        this.defaultHandler = null;
         setupRoutes(routes);
     }
 
@@ -35,29 +46,35 @@ public class RouterHandler extends SimpleChannelUpstreamHandler {
             boolean matchFound = false;
             for (Map.Entry<Matcher, ChannelHandler> m : routes.entrySet()) {
                 if (m.getKey().match(uri)) {
-                    ChannelPipeline p = ctx.getPipeline();
-                    synchronized (p) {
-                        if (p.get("route-generated") == null) {
-                            p.addLast("route-generated", m.getValue());
-                        } else {
-                            p.replace("route-generated", "route-generated", m.getValue());
-                        }
-                    }
+                    addOrReplaceHandler(ctx.getPipeline(), m.getValue(), "route-generated");
                     matchFound = true;
                     break;
                 }
             }
 
+            if (!matchFound && !handleNotFound && defaultHandler != null) {
+            	addOrReplaceHandler(ctx.getPipeline(), defaultHandler, "default-handler");
+            }
             /*
             If the route can't be found and we are supposed to handle not found URLs we append a 404 handler
              */
             if (!matchFound && handleNotFound) {
-                ctx.getPipeline().addLast("404-handler", HANDLER_404);
+            	addOrReplaceHandler(ctx.getPipeline(), HANDLER_404, "404-handler");
             }
         }
 
         super.handleUpstream(ctx, e);
     }
+
+	private void addOrReplaceHandler(ChannelPipeline pipeline, ChannelHandler channelHandler, String handleName) {
+		synchronized (pipeline) {
+		    if (pipeline.get(handleName) == null) {
+		    	pipeline.addLast(handleName, channelHandler);
+		    } else {
+		    	pipeline.replace(handleName, handleName, channelHandler);
+		    }
+		}
+	}
 
     private class StartsWithMatcher implements Matcher {
         private String route;
