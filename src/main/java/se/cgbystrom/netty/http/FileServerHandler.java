@@ -65,6 +65,14 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler {
         this.stripFromUri = stripFromUri;
     }
 
+    public MimetypesFileTypeMap getFileTypeMap() {
+		return fileTypeMap;
+	}
+    
+    public int getCacheMaxAge() {
+		return cacheMaxAge;
+	}
+    
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
         HttpRequest request = (HttpRequest) e.getMessage();
@@ -107,9 +115,9 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler {
             // Close the connection when the whole content is written out.
             writeFuture.addListener(ChannelFutureListener.CLOSE);
         }
-    }
+    } 
 
-    private ChannelBuffer getFileContent(String path) {
+    protected ChannelBuffer getFileContent(String path) {
         InputStream is;
         try {
             if (fromClasspath) {
@@ -158,7 +166,7 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler {
         }
     }
 
-    private String sanitizeUri(String uri) throws URISyntaxException {
+    protected String sanitizeUri(String uri) throws URISyntaxException {
         // Decode the path.
         try {
             uri = URLDecoder.decode(uri, "UTF-8");
@@ -191,7 +199,7 @@ public class FileServerHandler extends SimpleChannelUpstreamHandler {
         return uri;
     }
 
-    private void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
+    protected void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
         HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
         response.setHeader(CONTENT_TYPE, "text/plain; charset=UTF-8");
         response.setContent(ChannelBuffers.copiedBuffer(
