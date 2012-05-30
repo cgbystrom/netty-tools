@@ -28,8 +28,8 @@ public class CacheHandler extends SimpleChannelHandler {
             HttpRequest request = (HttpRequest)((MessageEvent)e).getMessage();
 
             CacheEntry ce = cache.get(request.getUri());
-            if (ce != null && ce.expires > System.currentTimeMillis()) {
-                ChannelFuture f = e.getChannel().write(ce.content);
+            if (ce != null && ce.getExpires() > System.currentTimeMillis()) {
+                ChannelFuture f = e.getChannel().write(ce.getContent());
                 f.addListener(ChannelFutureListener.CLOSE);
                 if (!HttpHeaders.isKeepAlive(request)) {
                     f.addListener(ChannelFutureListener.CLOSE);
@@ -75,15 +75,5 @@ public class CacheHandler extends SimpleChannelHandler {
 
         // Close the connection as soon as the error message is sent.
         ctx.getChannel().write(response).addListener(ChannelFutureListener.CLOSE);
-    }
-
-    private static class CacheEntry {
-        public HttpMessage content;
-        public long expires;
-
-        private CacheEntry(HttpMessage content, long expires) {
-            this.content = content;
-            this.expires = expires;
-        }
     }
 }
