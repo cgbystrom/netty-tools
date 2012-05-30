@@ -2,6 +2,8 @@ package se.cgbystrom.netty.http.router;
 
 import org.jboss.netty.channel.*;
 import org.jboss.netty.handler.codec.http.HttpRequest;
+
+import se.cgbystrom.netty.http.CacheHandler;
 import se.cgbystrom.netty.http.SimpleResponseHandler;
 import se.cgbystrom.netty.http.router.Matcher;
 
@@ -52,15 +54,18 @@ public class RouterHandler extends SimpleChannelUpstreamHandler {
                 }
             }
 
-            if (!matchFound && !handleNotFound && defaultHandler != null) {
+            //If we found a match above, we want to _ensure_ that the default handler is NOT called
+            if (matchFound) {
+            	removeHandler(ctx.getPipeline(), "default-handler");
+            } 
+            	
+            //use the default handler is specified
+            if (!matchFound && defaultHandler != null) {
             	addOrReplaceHandler(ctx.getPipeline(), defaultHandler, "default-handler");
-            }
-            /*
-            If the route can't be found and we are supposed to handle not found URLs we append a 404 handler
-             */
-            if (!matchFound && handleNotFound) {
-            	addOrReplaceHandler(ctx.getPipeline(), HANDLER_404, "404-handler");
-            }
+        	} else if (!matchFound && handleNotFound) {
+        		//Use the not found handler if specified
+        		addOrReplaceHandler(ctx.getPipeline(), HANDLER_404, "404-handler");
+        	}
         }
 
         super.handleUpstream(ctx, e);
@@ -73,6 +78,15 @@ public class RouterHandler extends SimpleChannelUpstreamHandler {
 		    } else {
 		    	pipeline.replace(handleName, handleName, channelHandler);
 		    }
+		}
+	}
+	
+	private void removeHandler(ChannelPipeline pipeline, String handleName) {
+		synchronized (pipeline) {
+			if (pipeline.get(handleName) != null) {
+				System.out.println("removing handle: " + handleName);
+				pipeline.remove(handleName);
+			}
 		}
 	}
 
